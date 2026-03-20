@@ -72,10 +72,14 @@
         }
 
         /* 手機端觸摸或電腦端滑鼠滑過時的效果 */
-        .portal-btn:hover, .portal-btn:active {
-            background-color: #2980b9; /* 顏色變深 */
-            transform: translateY(-2px); /* 稍微向上浮起 */
-            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+        .portal-btn.1 {
+            background-color: #2ecc71; /* 綠色 */
+            box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2);
+        }
+        
+        .portal-btn.1:hover, .portal-btn.1:active
+            background-color: #27ae60;
+            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.3);
         }
 
         /* 為了讓兩個按鈕有點區別，給第二個按鈕不同的顏色 (可選) */
@@ -116,7 +120,7 @@
         </header>
 
         <nav class="button-group">
-            <a href="Levelcounting.html" class="portal-btn"調節液位流量計算</a>
+            <a href="Levelcounting.html" class="portal-btn 1"調節液位流量計算</a>
             <a href="Levelcounting2.html" class="portal-btn 2"自訂池體液位流量計算</a>
             <a href="Sludgenote.html" class="portal-btn 3">污泥量測記錄</a>
         </nav>
