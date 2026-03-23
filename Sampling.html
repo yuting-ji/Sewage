@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>水質採樣記錄表</title>
+    <title>竹南污水處理廠 - 水質採樣紀錄表</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'LiHei Pro', sans-serif;
@@ -60,10 +60,9 @@
             font-weight: bold;
             color: #0056b3;
             margin-top: 25px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
         }
         .dynamic-row {
             background-color: #f8f9fa;
@@ -94,10 +93,16 @@
             transition: background-color 0.2s;
         }
         .btn-add {
-            background-color: #28a745;
-            color: white;
-            padding: 6px 12px;
-            font-size: 14px;
+            background-color: #e6f4ea;
+            color: #1e8e3e;
+            border: 2px dashed #1e8e3e;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .btn-add:active {
+            background-color: #ceead6;
         }
         .btn-remove {
             background-color: #dc3545;
@@ -141,7 +146,7 @@
             }
             .dynamic-row {
                 border: 1px solid #ccc;
-                page-break-inside: avoid; /* 避免列印時區塊被截斷 */
+                page-break-inside: avoid;
             }
             input, select {
                 border: none;
@@ -156,7 +161,7 @@
 <body>
 
 <div class="container" id="captureArea">
-    <h2>水質採樣記錄</h2>
+    <h2>竹南污水處理廠採樣紀錄</h2>
     
     <form id="samplingForm">
         <div class="form-group">
@@ -169,7 +174,7 @@
         </div>
         <div class="form-group">
             <label>採樣地點:</label>
-            <input type="text" id="location" name="location" placeholder="例如: D01放流口">
+            <input type="text" id="location" name="location" placeholder="例如: T01調節池 (南側1+2池)">
         </div>
         
         <div style="display: flex; gap: 10px;">
@@ -195,10 +200,8 @@
             <input type="text" id="appearanceOther" class="hidden" placeholder="請說明其他外觀" style="margin-top: 10px;">
         </div>
 
-        <div class="section-title">
-            <span>分析項目清單</span>
-            <button type="button" class="btn btn-add" onclick="addAnalysisRow()">+ 新增項目</button>
-        </div>
+        <div class="section-title">分析項目清單</div>
+        
         <div id="analysisContainer">
             <div class="dynamic-row analysis-item">
                 <div class="col-full">
@@ -227,11 +230,10 @@
                 </div>
             </div>
         </div>
+        <button type="button" class="btn btn-add" onclick="addAnalysisRow()">+ 繼續新增分析項目</button>
 
-        <div class="section-title">
-            <span>現場量測記錄</span>
-            <button type="button" class="btn btn-add" onclick="addMeasurementRow()">+ 新增量測</button>
-        </div>
+        <div class="section-title">現場量測記錄</div>
+        
         <div id="measurementContainer">
             <div class="dynamic-row measure-item">
                 <div class="col">
@@ -248,6 +250,7 @@
                 </div>
             </div>
         </div>
+        <button type="button" class="btn btn-add" onclick="addMeasurementRow()">+ 增加其他現場量測</button>
 
         <div class="action-buttons">
             <button type="button" class="btn btn-word" onclick="downloadWord()">下載 Word 文件</button>
@@ -347,11 +350,9 @@
 
         // 收集量測記錄
         let measureHTML = '';
-        // 預設的三項
         document.querySelectorAll('.measure-val').forEach(item => {
             measureHTML += `<li>${item.getAttribute('data-name')}: ${item.value}</li>`;
         });
-        // 自訂的其他項
         document.querySelectorAll('.measure-custom-name').forEach((item, index) => {
             const valInput = document.querySelectorAll('.measure-custom-val')[index];
             if (item.value) {
@@ -364,7 +365,7 @@
             <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
             <head>
                 <meta charset='utf-8'>
-                <title>水質採樣記錄</title>
+                <title>竹南污水處理廠採樣紀錄</title>
                 <style>
                     body { font-family: '標楷體', '微軟正黑體', sans-serif; }
                     table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
@@ -373,7 +374,7 @@
                 </style>
             </head>
             <body>
-                <h2>水質採樣記錄</h2>
+                <h2>竹南污水處理廠採樣紀錄</h2>
                 <table>
                     <tr><th width="20%">採樣單位</th><td width="30%">${unit}</td><th width="20%">送樣人員</th><td width="30%">${deliverer}</td></tr>
                     <tr><th>採樣地點</th><td colspan="3">${location}</td></tr>
@@ -395,12 +396,11 @@
             </html>
         `;
 
-        // 建立 Blob 並觸發下載
         const blob = new Blob(['\ufeff', wordContent], { type: 'application/msword' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `採樣記錄_${date ? date : '未命名'}.doc`;
+        link.download = `採樣紀錄_${date ? date : '未命名'}.doc`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
