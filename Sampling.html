@@ -44,7 +44,7 @@
             border: 1px solid #ccd0d5;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 16px; /* 防止 iOS 縮放 */
+            font-size: 16px;
             background-color: #fafbfc;
         }
         input:focus, select:focus {
@@ -55,7 +55,6 @@
         .hidden {
             display: none;
         }
-        /* 動態區塊樣式 */
         .section-title {
             font-size: 18px;
             font-weight: bold;
@@ -78,7 +77,7 @@
             align-items: center;
         }
         .dynamic-row .col {
-            flex: 1 1 45%; /* 手機畫面一行排兩個或單獨排 */
+            flex: 1 1 45%;
             min-width: 120px;
         }
         .dynamic-row .col-full {
@@ -106,43 +105,81 @@
             width: 100%;
             margin-top: 5px;
         }
-        .btn-submit {
-            background-color: #0056b3;
-            color: white;
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
             margin-top: 30px;
+        }
+        .btn-word {
+            background-color: #1a73e8;
+            color: white;
+            flex: 1;
+            padding: 15px 0;
+        }
+        .btn-print {
+            background-color: #6c757d;
+            color: white;
+            flex: 1;
+            padding: 15px 0;
+        }
+
+        /* 列印/輸出 PDF 時的專屬樣式設定 */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            /* 隱藏不需印出的按鈕 */
+            .btn-add, .btn-remove, .action-buttons {
+                display: none !important;
+            }
+            .dynamic-row {
+                border: 1px solid #ccc;
+                page-break-inside: avoid; /* 避免列印時區塊被截斷 */
+            }
+            input, select {
+                border: none;
+                background-color: transparent;
+                padding: 0;
+                border-bottom: 1px solid #333;
+                border-radius: 0;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="captureArea">
     <h2>竹南污水處理廠採樣紀錄</h2>
     
     <form id="samplingForm">
         <div class="form-group">
             <label>採樣單位:</label>
-            <input type="text" name="sampling_unit" placeholder="請輸入採樣單位">
+            <input type="text" id="sampling_unit" name="sampling_unit" placeholder="請輸入採樣單位">
         </div>
         <div class="form-group">
             <label>送樣人員:</label>
-            <input type="text" name="deliverer" placeholder="請輸入送樣人員姓名">
+            <input type="text" id="deliverer" name="deliverer" placeholder="請輸入送樣人員姓名">
         </div>
         <div class="form-group">
             <label>採樣地點:</label>
-            <input type="text" name="location" placeholder="例如: T01調節池 (南側1+2池)">
+            <input type="text" id="location" name="location" placeholder="例如: T01調節池 (南側1+2池)">
         </div>
         
         <div style="display: flex; gap: 10px;">
             <div class="form-group" style="flex: 1;">
                 <label>採樣日期:</label>
-                <input type="date" name="sample_date">
+                <input type="date" id="sample_date" name="sample_date">
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>採樣時間:</label>
-                <input type="time" name="sample_time">
+                <input type="time" id="sample_time" name="sample_time">
             </div>
         </div>
 
@@ -163,22 +200,22 @@
             <button type="button" class="btn btn-add" onclick="addAnalysisRow()">+ 新增項目</button>
         </div>
         <div id="analysisContainer">
-            <div class="dynamic-row">
+            <div class="dynamic-row analysis-item">
                 <div class="col-full">
                     <label>分析項目:</label>
-                    <input type="text" placeholder="例如: COD, SS, 氨氮">
+                    <input type="text" class="item-name" placeholder="例如: COD, SS, 氨氮">
                 </div>
                 <div class="col">
                     <label>體積(ml):</label>
-                    <input type="number" placeholder="ml">
+                    <input type="number" class="item-vol" placeholder="ml">
                 </div>
                 <div class="col">
                     <label>數量:</label>
-                    <input type="number" placeholder="瓶/個">
+                    <input type="number" class="item-qty" placeholder="瓶/個">
                 </div>
                 <div class="col-full">
                     <label>保存方式:</label>
-                    <select>
+                    <select class="item-preserve">
                         <option value="R">R</option>
                         <option value="R-SA">R-SA</option>
                         <option value="R-NA">R-NA</option>
@@ -188,7 +225,7 @@
                         <option value="R-SF">R-SF</option>
                     </select>
                 </div>
-                </div>
+            </div>
         </div>
 
         <div class="section-title">
@@ -196,61 +233,61 @@
             <button type="button" class="btn btn-add" onclick="addMeasurementRow()">+ 新增量測</button>
         </div>
         <div id="measurementContainer">
-            <div class="dynamic-row">
+            <div class="dynamic-row measure-item">
                 <div class="col">
                     <label>pH:</label>
-                    <input type="number" step="0.01" placeholder="數值">
+                    <input type="number" step="0.01" class="measure-val" placeholder="數值" data-name="pH">
                 </div>
                 <div class="col">
                     <label>水溫 (℃):</label>
-                    <input type="number" step="0.1" placeholder="數值">
+                    <input type="number" step="0.1" class="measure-val" placeholder="數值" data-name="水溫(℃)">
                 </div>
                 <div class="col-full">
                     <label>導電度 (µmho/cm):</label>
-                    <input type="number" step="1" placeholder="數值">
+                    <input type="number" step="1" class="measure-val" placeholder="數值" data-name="導電度(µmho/cm)">
                 </div>
             </div>
         </div>
 
-        <button type="button" class="btn btn-submit" onclick="submitForm()">確認送出紀錄</button>
+        <div class="action-buttons">
+            <button type="button" class="btn btn-word" onclick="downloadWord()">下載 Word 文件</button>
+            <button type="button" class="btn btn-print" onclick="window.print()">預覽 / 列印 PDF</button>
+        </div>
     </form>
 </div>
 
 <script>
-    // 控制「樣品外觀」選擇其他時顯示輸入框
     function toggleOtherAppearance() {
         const select = document.getElementById("appearanceSelect");
         const otherInput = document.getElementById("appearanceOther");
         if (select.value === "其他") {
             otherInput.classList.remove("hidden");
-            otherInput.focus();
         } else {
             otherInput.classList.add("hidden");
-            otherInput.value = ""; // 清空值
+            otherInput.value = ""; 
         }
     }
 
-    // 新增分析項目列
     function addAnalysisRow() {
         const container = document.getElementById("analysisContainer");
         const row = document.createElement("div");
-        row.className = "dynamic-row";
+        row.className = "dynamic-row analysis-item";
         row.innerHTML = `
             <div class="col-full">
                 <label>分析項目:</label>
-                <input type="text" placeholder="例如: COD, SS, 氨氮">
+                <input type="text" class="item-name" placeholder="例如: COD, SS, 氨氮">
             </div>
             <div class="col">
                 <label>體積(ml):</label>
-                <input type="number" placeholder="ml">
+                <input type="number" class="item-vol" placeholder="ml">
             </div>
             <div class="col">
                 <label>數量:</label>
-                <input type="number" placeholder="瓶/個">
+                <input type="number" class="item-qty" placeholder="瓶/個">
             </div>
             <div class="col-full">
                 <label>保存方式:</label>
-                <select>
+                <select class="item-preserve">
                     <option value="R">R</option>
                     <option value="R-SA">R-SA</option>
                     <option value="R-NA">R-NA</option>
@@ -265,37 +302,116 @@
         container.appendChild(row);
     }
 
-    // 新增其他現場量測列
     function addMeasurementRow() {
         const container = document.getElementById("measurementContainer");
         const row = document.createElement("div");
-        row.className = "dynamic-row";
+        row.className = "dynamic-row measure-item";
         row.innerHTML = `
             <div class="col">
                 <label>量測項目名稱 (其他):</label>
-                <input type="text" placeholder="例如: 溶氧(DO)">
+                <input type="text" class="measure-custom-name" placeholder="例如: 溶氧(DO)">
             </div>
             <div class="col">
                 <label>數值:</label>
-                <input type="text" placeholder="數值與單位">
+                <input type="text" class="measure-custom-val" placeholder="數值與單位">
             </div>
             <button type="button" class="btn btn-remove" onclick="this.parentElement.remove()">- 刪除此量測</button>
         `;
         container.appendChild(row);
     }
 
-    // 模擬送出表單
-    function submitForm() {
-        alert("採樣紀錄已成功記錄！\n(此為前端展示，實際應用需串接後端資料庫)");
+    // 匯出 Word 邏輯
+    function downloadWord() {
+        const unit = document.getElementById('sampling_unit').value || '';
+        const deliverer = document.getElementById('deliverer').value || '';
+        const location = document.getElementById('location').value || '';
+        const date = document.getElementById('sample_date').value || '';
+        const time = document.getElementById('sample_time').value || '';
+        
+        let appearance = document.getElementById('appearanceSelect').value || '';
+        if (appearance === '其他') {
+            appearance += ' (' + document.getElementById('appearanceOther').value + ')';
+        }
+
+        // 收集分析項目
+        let analysisHTML = '';
+        document.querySelectorAll('.analysis-item').forEach(item => {
+            const name = item.querySelector('.item-name').value || '';
+            const vol = item.querySelector('.item-vol').value || '';
+            const qty = item.querySelector('.item-qty').value || '';
+            const preserve = item.querySelector('.item-preserve').value || '';
+            if (name) {
+                analysisHTML += `<tr><td>${name}</td><td>${vol}</td><td>${qty}</td><td>${preserve}</td></tr>`;
+            }
+        });
+
+        // 收集量測記錄
+        let measureHTML = '';
+        // 預設的三項
+        document.querySelectorAll('.measure-val').forEach(item => {
+            measureHTML += `<li>${item.getAttribute('data-name')}: ${item.value}</li>`;
+        });
+        // 自訂的其他項
+        document.querySelectorAll('.measure-custom-name').forEach((item, index) => {
+            const valInput = document.querySelectorAll('.measure-custom-val')[index];
+            if (item.value) {
+                measureHTML += `<li>${item.value}: ${valInput.value}</li>`;
+            }
+        });
+
+        // 組裝 Word HTML 結構
+        const wordContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset='utf-8'>
+                <title>竹南污水處理廠採樣紀錄</title>
+                <style>
+                    body { font-family: '標楷體', '微軟正黑體', sans-serif; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    th, td { border: 1px solid black; padding: 8px; text-align: left; }
+                    h2 { text-align: center; }
+                </style>
+            </head>
+            <body>
+                <h2>竹南污水處理廠採樣紀錄</h2>
+                <table>
+                    <tr><th width="20%">採樣單位</th><td width="30%">${unit}</td><th width="20%">送樣人員</th><td width="30%">${deliverer}</td></tr>
+                    <tr><th>採樣地點</th><td colspan="3">${location}</td></tr>
+                    <tr><th>採樣日期</th><td>${date}</td><th>採樣時間</th><td>${time}</td></tr>
+                    <tr><th>樣品外觀</th><td colspan="3">${appearance}</td></tr>
+                </table>
+
+                <h3>分析項目</h3>
+                <table>
+                    <tr><th>分析項目</th><th>體積(ml)</th><th>數量</th><th>保存方式</th></tr>
+                    ${analysisHTML}
+                </table>
+
+                <h3>現場量測記錄</h3>
+                <ul>
+                    ${measureHTML}
+                </ul>
+            </body>
+            </html>
+        `;
+
+        // 建立 Blob 並觸發下載
+        const blob = new Blob(['\ufeff', wordContent], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `採樣紀錄_${date ? date : '未命名'}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
-    // 初始化日期與時間為當下時間
     window.onload = function() {
         const now = new Date();
         const dateString = now.toISOString().split('T')[0];
         const timeString = now.toTimeString().split(' ')[0].substring(0,5);
-        document.querySelector('input[name="sample_date"]').value = dateString;
-        document.querySelector('input[name="sample_time"]').value = timeString;
+        document.getElementById('sample_date').value = dateString;
+        document.getElementById('sample_time').value = timeString;
     };
 </script>
 
