@@ -14,7 +14,7 @@
             transition: background-color 0.3s;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1000px;
             margin: 0 auto;
             background-color: #fff;
             padding: 20px;
@@ -24,83 +24,47 @@
         }
         
         /* 表單標題區 */
-        .doc-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .doc-header h2 {
-            margin: 0;
-            font-size: 24px;
-            color: #000;
-        }
-        .doc-header h3 {
-            margin: 5px 0 15px 0;
-            font-size: 20px;
-            color: #000;
-        }
-        .doc-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 15px;
-        }
-        .doc-meta input {
-            border: 1px solid #ccc;
-            padding: 4px;
-            font-family: inherit;
-        }
+        .doc-header { text-align: center; margin-bottom: 20px; }
+        .doc-header h2 { margin: 0; font-size: 24px; color: #000; }
+        .doc-header h3 { margin: 5px 0 15px 0; font-size: 20px; color: #000; }
+        .doc-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+        .doc-meta input { border: 1px solid #ccc; padding: 4px; font-family: inherit; }
 
         /* 表格共用設定 */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
-            min-width: 800px;
-            font-size: 15px;
+            min-width: 900px;
+            font-size: 14px;
         }
         th, td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 5px;
             text-align: center;
             vertical-align: middle;
         }
-        .th-bg {
-            background-color: #e6e6e6;
-            font-weight: bold;
-        }
+        .th-bg { background-color: #e6e6e6; font-weight: bold; }
         
         /* 輸入框設定 */
         input[type="text"], input[type="date"], input[type="time"], select {
             width: 100%;
-            padding: 6px;
+            padding: 4px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 3px;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 13px;
         }
         
-        /* 特殊欄位寬度 */
-        .sm-input { width: 50px !important; }
         .text-left { text-align: left !important; }
+        .flex-input-group { display: flex; align-items: center; gap: 4px; }
 
         /* 按鈕區 */
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
+        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
         button {
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            transition: background-color 0.3s;
+            padding: 10px 15px; font-size: 15px; cursor: pointer; border: none;
+            border-radius: 5px; color: white; font-weight: bold; transition: background-color 0.3s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         #addRowBtn { background-color: #27ae60; }
@@ -109,53 +73,30 @@
         #downloadBtn:hover { background-color: #3498db; }
         #previewBtn { background-color: #8e44ad; }
         #previewBtn:hover { background-color: #9b59b6; }
-        .delete-btn {
-            background-color: #e74c3c;
-            padding: 4px 8px;
-            font-size: 13px;
-        }
+        
+        /* 表格內小按鈕 */
+        .action-btn { padding: 4px 8px; font-size: 12px; margin: 2px 0; width: 100%; }
+        .btn-add-item { background-color: #3498db; }
+        .btn-del-sample { background-color: #e74c3c; }
+        .btn-del-item { background-color: #e74c3c; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
 
         /* 底部說明與簽章區 */
-        .footer-note {
-            font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .signature-table td {
-            height: 60px;
-            vertical-align: top;
-            text-align: left;
-            padding: 5px;
-        }
+        .footer-note { font-size: 13px; line-height: 1.5; margin-bottom: 15px; text-align: left; }
+        .signature-table td { height: 60px; vertical-align: top; text-align: left; padding: 5px; }
 
         /* 預覽與列印模式 */
         body.preview-mode { background-color: #fff; padding: 5px; }
         .preview-mode .container { box-shadow: none; padding: 10px; border: none; }
         .preview-mode .no-print { display: none !important; }
         .preview-mode input, .preview-mode select {
-            border: none;
-            background: transparent;
-            -webkit-appearance: none;
-            appearance: none;
-            padding: 0;
-            color: #000;
-            text-align: center;
-            pointer-events: none;
+            border: none; background: transparent; -webkit-appearance: none; appearance: none;
+            padding: 0; color: #000; text-align: center; pointer-events: none;
         }
         .preview-mode .text-left input { text-align: left; }
         
         .floating-bar {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            gap: 15px;
-            z-index: 9999;
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
-            border-radius: 30px;
+            display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            gap: 15px; z-index: 9999; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px;
         }
         .preview-mode .floating-bar { display: flex; }
         .floating-bar button { font-size: 14px; padding: 8px 15px; }
@@ -186,71 +127,62 @@
     </div>
 
     <table>
+        <tr><td colspan="6" class="th-bg text-left">申請單位基本資料</td></tr>
         <tr>
-            <td colspan="6" class="th-bg text-left">申請單位基本資料</td>
+            <td width="15%">申請單位</td><td width="35%" colspan="2">中欣行(股)公司-竹南流程單位</td>
+            <td width="15%">聯絡人</td><td width="35%" colspan="2">侯克穎</td>
         </tr>
         <tr>
-            <td width="15%">申請單位</td>
-            <td width="35%" colspan="2">中欣行(股)公司-竹南流程單位</td>
-            <td width="15%">聯絡人</td>
-            <td width="35%" colspan="2">侯克穎</td>
+            <td>電話</td><td colspan="2">037-585015</td>
+            <td>傳真電話</td><td colspan="2">037-585395</td>
         </tr>
         <tr>
-            <td>電話</td>
-            <td colspan="2">037-585015</td>
-            <td>傳真電話</td>
-            <td colspan="2">037-585395</td>
+            <td>採樣地址</td><td colspan="5" class="text-left">&nbsp;苗栗縣竹南鎮科學路旁</td>
         </tr>
         <tr>
-            <td>採樣地址</td>
-            <td colspan="5" class="text-left">&nbsp;苗栗縣竹南鎮科學路旁</td>
+            <td>受檢單位</td><td colspan="2">竹南科學園區污水處理廠</td>
+            <td>採樣(單位)人員</td><td colspan="2"><input type="text" placeholder="環保局/或其他填寫區" value="環保局"></td>
         </tr>
         <tr>
-            <td>受檢單位</td>
-            <td colspan="2">竹南科學園區污水處理廠</td>
-            <td>採樣(單位)人員</td>
-            <td colspan="2"><input type="text" placeholder="環保局/或其他填寫區" value="環保局"></td>
-        </tr>
-        <tr>
-            <td>樣品種類</td>
-            <td colspan="2">事業廢水</td>
-            <td>送樣人員</td>
-            <td colspan="2"><input type="text" placeholder="請輸入送樣人員姓名"></td>
+            <td>樣品種類</td><td colspan="2">事業廢水</td>
+            <td>送樣人員</td><td colspan="2"><input type="text" placeholder="請輸入送樣人員姓名"></td>
         </tr>
     </table>
 
-    <table>
-        <tr>
-            <td colspan="15" class="th-bg text-left">檢驗需求內容及說明</td>
-        </tr>
-        <tr>
-            <td rowspan="2" width="9%">採樣地點<br>(名稱)</td>
-            <td rowspan="2" width="8%">採樣日期</td>
-            <td rowspan="2" width="7%">採樣時間</td>
-            <td rowspan="2" width="8%">樣品外觀</td>
-            <td rowspan="2" width="16%">委託分析項目</td>
-            <td rowspan="2" width="7%">體積<br>(mL)</td>
-            <td rowspan="2" width="5%">數量</td>
-            <td rowspan="2" width="8%">保存方式<br>代號</td>
-            <td rowspan="2" width="8%">樣品編號<br><span style="font-size:12px;">(檢驗室填)</span></td>
-            <td colspan="4" width="20%">現場量測紀錄</td>
-            <td rowspan="2" width="4%" class="no-print">操作</td>
-        </tr>
-        <tr>
-            <td width="5%">pH</td>
-            <td width="5%">水溫℃</td>
-            <td width="5%">導電度<br>µmho/cm</td>
-            <td width="5%">其他</td>
-        </tr>
-        <tbody id="tableBody">
-            </tbody>
-        <tr>
-            <td colspan="15" style="text-align: center; background-color: #f9f9f9; padding: 2px;">以下空白</td>
-        </tr>
-        <tr>
-            <td class="th-bg">要求事項</td>
-            <td colspan="14" class="text-left"><input type="text" placeholder="請填寫其他檢驗要求事項..."></td>
-        </tr>
+    <table id="sampleTable">
+        <thead>
+            <tr>
+                <td colspan="14" class="th-bg text-left">檢驗需求內容及說明</td>
+            </tr>
+            <tr>
+                <td rowspan="2" width="9%">採樣地點<br>(名稱)</td>
+                <td rowspan="2" width="10%">採樣日期</td>
+                <td rowspan="2" width="8%">採樣時間</td>
+                <td rowspan="2" width="8%">樣品外觀</td>
+                <td rowspan="2" width="15%">委託分析項目</td>
+                <td rowspan="2" width="6%">體積<br>(mL)</td>
+                <td rowspan="2" width="5%">數量</td>
+                <td rowspan="2" width="8%">保存方式<br>代號</td>
+                <td rowspan="2" width="8%">樣品編號<br><span style="font-size:10px;">(檢驗室填)</span></td>
+                <td colspan="4">現場量測紀錄</td>
+                <td rowspan="2" width="7%" class="no-print">操作</td>
+            </tr>
+            <tr>
+                <td width="4%">pH</td>
+                <td width="4%">水溫℃</td>
+                <td width="4%">導電度</td>
+                <td width="4%">其他</td>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan="14" style="text-align: center; background-color: #f9f9f9; padding: 2px;">以下空白</td>
+            </tr>
+            <tr>
+                <td class="th-bg">要求事項</td>
+                <td colspan="13" class="text-left"><input type="text" placeholder="請填寫其他檢驗要求事項..."></td>
+            </tr>
+        </tfoot>
     </table>
 
     <div class="footer-note">
@@ -272,7 +204,7 @@
 </div>
 
 <div class="btn-group no-print" id="mainBtns">
-    <button id="addRowBtn" onclick="addRow()">新增樣品列</button>
+    <button id="addRowBtn" onclick="addSample()">新增採樣地點</button>
     <button id="downloadBtn" onclick="exportToWord()">下載文件 (.doc)</button>
     <button id="previewBtn" onclick="togglePreview(true)">預覽 (截圖 / PDF)</button>
 </div>
@@ -285,22 +217,24 @@
 <script>
     window.onload = function() {
         document.getElementById('appDate').valueAsDate = new Date();
-        addRow(); // 預設新增一列
+        addSample(); // 預設新增一個採樣點
     };
 
-    function addRow() {
-        const tbody = document.getElementById('tableBody');
-        const tr = document.createElement('tr');
+    // 新增「採樣地點」 (產生一個獨立的 tbody 群組)
+    function addSample() {
+        const table = document.getElementById('sampleTable');
+        const tfoot = table.querySelector('tfoot');
+        const tbody = document.createElement('tbody');
         
-        // 預設填入當下日期與時間
         const today = new Date().toISOString().split('T')[0];
         const now = new Date().toTimeString().split(' ')[0].substring(0,5);
 
+        const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" placeholder="如:放流口"></td>
-            <td><input type="date" value="${today}"></td>
-            <td><input type="time" value="${now}"></td>
-            <td>
+            <td class="span-cell"><input type="text" placeholder="如:放流口"></td>
+            <td class="span-cell"><input type="date" value="${today}"></td>
+            <td class="span-cell"><input type="time" value="${now}"></td>
+            <td class="span-cell">
                 <select>
                     <option value="透明">透明</option>
                     <option value="微濁">微濁</option>
@@ -308,9 +242,9 @@
                     <option value="其他">其他</option>
                 </select>
             </td>
-            <td><input type="text" placeholder="SS,BOD,COD..."></td>
-            <td><input type="text" placeholder="2000"></td>
-            <td><input type="text" placeholder="5"></td>
+            <td><input type="text" placeholder="如:SS, COD"></td>
+            <td><input type="text" placeholder="體積"></td>
+            <td><input type="text" placeholder="數量"></td>
             <td>
                 <select>
                     <option value="R">R</option>
@@ -320,14 +254,73 @@
                     <option value="R-AS">R-AS</option>
                 </select>
             </td>
-            <td></td> <td><input type="text" class="sm-input"></td> <td><input type="text" class="sm-input"></td> <td><input type="text" class="sm-input"></td> <td><input type="text" class="sm-input"></td> <td class="no-print"><button class="delete-btn" onclick="removeRow(this)">刪除</button></td>
+            <td></td> <td class="span-cell"><input type="text"></td>
+            <td class="span-cell"><input type="text"></td>
+            <td class="span-cell"><input type="text"></td>
+            <td class="span-cell"><input type="text"></td>
+            <td class="span-cell no-print">
+                <button class="action-btn btn-add-item" onclick="addItem(this)">+項目</button>
+                <button class="action-btn btn-del-sample" onclick="removeSample(this)">刪除地點</button>
+            </td>
         `;
         tbody.appendChild(tr);
+        table.insertBefore(tbody, tfoot); // 插入到 tfoot (以下空白) 之前
     }
 
-    function removeRow(btn) {
-        const row = btn.parentNode.parentNode;
-        row.parentNode.removeChild(row);
+    // 在同一個採樣地點「新增分析項目」
+    function addItem(btn) {
+        const tbody = btn.closest('tbody');
+        const firstTr = tbody.querySelector('tr');
+        
+        // 1. 讓共用欄位的 rowspan 增加
+        const spanCells = firstTr.querySelectorAll('.span-cell');
+        spanCells.forEach(cell => {
+            cell.rowSpan = (cell.rowSpan || 1) + 1;
+        });
+
+        // 2. 插入新的一列 (只需包含中間 5 個獨立欄位)
+        const newTr = document.createElement('tr');
+        newTr.innerHTML = `
+            <td>
+                <div class="flex-input-group">
+                    <input type="text" placeholder="附加分析項目">
+                    <button class="btn-del-item no-print" onclick="removeItem(this)" title="刪除此項目">X</button>
+                </div>
+            </td>
+            <td><input type="text" placeholder="體積"></td>
+            <td><input type="text" placeholder="數量"></td>
+            <td>
+                <select>
+                    <option value="R">R</option>
+                    <option value="R-SA">R-SA</option>
+                    <option value="R-NA">R-NA</option>
+                    <option value="R-SH">R-SH</option>
+                    <option value="R-AS">R-AS</option>
+                </select>
+            </td>
+            <td></td>
+        `;
+        tbody.appendChild(newTr);
+    }
+
+    // 刪除附加的單一分析項目
+    function removeItem(btn) {
+        const tr = btn.closest('tr');
+        const tbody = tr.closest('tbody');
+        const firstTr = tbody.querySelector('tr');
+        
+        // 將共用欄位的 rowspan 減回去
+        const spanCells = firstTr.querySelectorAll('.span-cell');
+        spanCells.forEach(cell => {
+            cell.rowSpan = Math.max(1, (cell.rowSpan || 1) - 1);
+        });
+
+        tr.remove();
+    }
+
+    // 刪除整個採樣地點群組
+    function removeSample(btn) {
+        btn.closest('tbody').remove();
     }
 
     function togglePreview(isEntering) {
@@ -356,10 +349,6 @@
         
         for (let i = 0; i < originalInputs.length; i++) {
             let val = originalInputs[i].value;
-            // 處理 checkbox 外觀 (如有需要，下拉選單自動加上方格)
-            if(originalInputs[i].tagName === 'SELECT' && originalInputs[i].value !== '透明' && originalInputs[i].value !== 'R' && val.length > 0) {
-                // 原word檔外觀如有打勾需求，這裡純文字帶入即可
-            }
             let textNode = document.createTextNode(val || " "); 
             cloneInputs[i].parentNode.replaceChild(textNode, cloneInputs[i]);
         }
@@ -367,6 +356,7 @@
         let noPrintElements = clone.querySelectorAll('.no-print');
         noPrintElements.forEach(el => el.remove());
 
+        // 版面設定為 直式(Portrait) A4尺寸 (595.3pt x 841.9pt)，並採窄邊界
         let header = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' 
               xmlns:w='urn:schemas-microsoft-com:office:word' 
@@ -376,9 +366,8 @@
             <title>樣品檢驗申請單</title>
             <style>
                 @page WordSection1 {
-                    size: 841.9pt 595.3pt; /* A4 橫式 */
-                    mso-page-orientation: landscape;
-                    margin: 36.0pt 36.0pt 36.0pt 36.0pt; /* 窄邊界 */
+                    size: 595.3pt 841.9pt; /* A4 直式尺寸 */
+                    margin: 36.0pt 36.0pt 36.0pt 36.0pt; /* 窄邊界約 1.27cm */
                     mso-header-margin: 36.0pt;
                     mso-footer-margin: 36.0pt;
                     mso-paper-source: 0;
@@ -387,7 +376,7 @@
                 
                 body, table, th, td, div, p, span {
                     font-family: '標楷體', DFKai-SB, serif;
-                    font-size: 11pt;
+                    font-size: 11pt; /* 字體大小依照需求 */
                 }
                 h2 { text-align: center; font-size: 18pt; margin: 0; font-family: '標楷體', DFKai-SB, serif; }
                 h3 { text-align: center; font-size: 16pt; margin: 5pt 0 15pt 0; font-family: '標楷體', DFKai-SB, serif; }
