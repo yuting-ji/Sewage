@@ -3,450 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>樣品檢驗申請單 - 竹南污水處理廠</title>
+    <title>樣品檢驗申請 - 填報系統</title>
     <style>
         body {
             font-family: '微軟正黑體', Arial, sans-serif;
-            background-color: #f4f7f6;
+            background-color: #f0f2f5;
             margin: 0;
-            padding: 15px;
+            padding: 20px 10px;
             color: #333;
-            transition: background-color 0.3s;
         }
-        .container {
-            max-width: 1000px;
+        .app-container {
+            max-width: 800px;
             margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
+        }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; font-size: 22px; }
+        
+        /* 乾淨的卡片式設計 */
+        .card {
+            background: #fff;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            overflow-x: auto;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-top: 4px solid #3498db;
         }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 8px; }
         
-        /* 表單標題區 */
-        .doc-header { text-align: center; margin-bottom: 20px; }
-        .doc-header h2 { margin: 0; font-size: 24px; color: #000; }
-        .doc-header h3 { margin: 5px 0 15px 0; font-size: 20px; color: #000; }
-        .doc-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
-        .doc-meta input { border: 1px solid #ccc; padding: 4px; font-family: inherit; }
-
-        /* 表格共用設定 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-            min-width: 900px;
-            font-size: 14px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 4px;
-            text-align: center;
-            vertical-align: middle;
-        }
-        .th-bg { background-color: #e6e6e6; font-weight: bold; }
-        .text-left { text-align: left !important; }
-        
-        /* 輸入框設定 */
+        /* 表單排版 */
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+        .form-group { flex: 1; min-width: 120px; display: flex; flex-direction: column; }
+        .form-group label { font-size: 13px; color: #666; margin-bottom: 4px; font-weight: bold; }
         input[type="text"], input[type="date"], input[type="time"], select {
-            width: 100%;
-            padding: 3px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            font-family: inherit;
-            font-size: 13px;
+            padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit;
         }
-        .sm-input { width: auto !important; display: inline-block; }
-        .flex-input-group { display: flex; align-items: center; gap: 4px; }
+        input:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52,152,219,0.2); }
 
-        /* 按鈕區 */
-        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
-        button {
-            padding: 10px 15px; font-size: 15px; cursor: pointer; border: none;
-            border-radius: 5px; color: white; font-weight: bold; transition: background-color 0.3s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        #addRowBtn { background-color: #27ae60; }
-        #addRowBtn:hover { background-color: #2ecc71; }
-        #downloadBtn { background-color: #2980b9; }
-        #downloadBtn:hover { background-color: #3498db; }
-        #previewBtn { background-color: #8e44ad; }
-        #previewBtn:hover { background-color: #9b59b6; }
-        .action-btn { padding: 4px 8px; font-size: 12px; margin: 2px 0; width: 100%; }
-        .btn-add-item { background-color: #3498db; }
-        .btn-del-sample { background-color: #e74c3c; }
-        .btn-del-item { background-color: #e74c3c; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
-
-        /* 底部說明與簽章區 */
-        .footer-note { font-size: 12px; line-height: 1.4; margin-bottom: 10px; text-align: left; }
-        .bottom-table td { text-align: left; vertical-align: top; line-height: 1.5; padding: 6px; }
-        .no-border-table td { border: none !important; padding: 2px !important; }
-
-        /* 預覽與列印模式 */
-        body.preview-mode { background-color: #fff; padding: 5px; }
-        .preview-mode .container { box-shadow: none; padding: 10px; border: none; }
-        .preview-mode .no-print { display: none !important; }
-        .preview-mode input, .preview-mode select {
-            border: none; background: transparent; -webkit-appearance: none; appearance: none;
-            padding: 0; color: #000; text-align: center; pointer-events: none; margin: 0;
-        }
-        .preview-mode .text-left input { text-align: left; }
+        /* 分析項目子清單 */
+        .item-list { background: #f9f9f9; border-radius: 6px; padding: 10px; margin-top: 10px; border: 1px dashed #ccc; }
+        .item-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+        .item-row input, .item-row select { padding: 6px; font-size: 13px; }
         
-        .floating-bar {
-            display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            gap: 15px; z-index: 9999; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px;
-        }
-        .preview-mode .floating-bar { display: flex; }
-        .floating-bar button { font-size: 14px; padding: 8px 15px; }
-        #exitPreviewBtn { background-color: #e74c3c; }
-        #printPdfBtn { background-color: #f39c12; }
+        /* 按鈕設計 */
+        .btn { padding: 8px 15px; font-size: 14px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; text-align: center; }
+        .btn-add { background-color: #e8f4fd; color: #2980b9; border: 1px solid #b3d7f2; }
+        .btn-add:hover { background-color: #d1e8fa; }
+        .btn-danger { background-color: #ffeaea; color: #c0392b; padding: 6px 10px; }
+        .btn-danger:hover { background-color: #ffd1d1; }
+        .btn-primary { background-color: #3498db; color: #fff; width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-primary:hover { background-color: #2980b9; }
 
-        @media print {
-            body { background-color: #fff; padding: 0; }
-            .container { box-shadow: none; padding: 0; min-width: 100%; border:none; }
-            .no-print, .floating-bar { display: none !important; }
-            input, select { border: none; background: transparent; appearance: none; padding: 0; margin: 0; color: #000; text-align: center; font-size: 11pt; }
-            .text-left input { text-align: left; }
-        }
     </style>
 </head>
 <body>
 
-<div class="container" id="exportContent">
-    
-    <div class="doc-header">
-        <h2>中欣行(股)公司 竹南檢驗室</h2>
-        <h3>樣品檢驗申請單</h3>
+<div class="app-container">
+    <h2>樣品檢驗申請 - 資料填報</h2>
+
+    <div class="card" style="border-top-color: #2c3e50;">
+        <div class="card-title">1. 基本資料</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>採樣人員</label>
+                <input type="text" id="sampler" value="環保局" placeholder="如: 環保局">
+            </div>
+            <div class="form-group">
+                <label>送樣人員</label>
+                <input type="text" id="deliverer" placeholder="請輸入姓名">
+            </div>
+        </div>
     </div>
 
-    <div class="doc-meta">
-        <div>申請日期：<input type="date" id="appDate"></div>
-        <div>申請單編號：<input type="text" style="width: 150px;"></div>
+    <div id="samplesContainer"></div>
+
+    <button class="btn btn-add" style="width: 100%; margin-bottom: 15px; padding: 10px; border-style: dashed;" onclick="addSample()">
+        + 新增下一個採樣地點
+    </button>
+
+    <div class="card" style="border-top-color: #f39c12;">
+        <div class="card-title">3. 實驗室要求事項</div>
+        <div class="form-group">
+            <input type="text" id="requirements" value="PH 、 水溫 、導電度數值由環保局提供。" placeholder="請輸入要求事項...">
+        </div>
     </div>
 
-    <table>
-        <tr><td colspan="6" class="th-bg text-left">申請單位基本資料</td></tr>
-        <tr>
-            <td width="15%">申請單位</td><td width="35%" colspan="2">中欣行(股)公司-竹南流程單位</td>
-            <td width="15%">聯絡人</td><td width="35%" colspan="2">侯克穎</td>
-        </tr>
-        <tr>
-            <td>電話</td><td colspan="2">037-585015</td>
-            <td>傳真電話</td><td colspan="2">037-585395</td>
-        </tr>
-        <tr>
-            <td>採樣地址</td><td colspan="5" class="text-left">&nbsp;苗栗縣竹南鎮科學路旁</td>
-        </tr>
-        <tr>
-            <td>受檢單位</td><td colspan="2">竹南科學園區污水處理廠</td>
-            <td>採樣(單位)人員</td><td colspan="2"><input type="text" placeholder="環保局/或其他填寫區" value="環保局"></td>
-        </tr>
-        <tr>
-            <td>樣品種類</td><td colspan="2">事業廢水</td>
-            <td>送樣人員</td><td colspan="2"><input type="text" placeholder="請輸入送樣人員姓名" value="紀玉庭"></td>
-        </tr>
-    </table>
-
-    <table id="sampleTable">
-        <thead>
-            <tr>
-                <td colspan="14" class="th-bg text-left">檢驗需求內容及說明</td>
-            </tr>
-            <tr>
-                <td rowspan="2" width="9%">採樣地點<br>(名稱)</td>
-                <td rowspan="2" width="10%">採樣日期</td>
-                <td rowspan="2" width="8%">採樣時間</td>
-                <td rowspan="2" width="8%">樣品外觀</td>
-                <td rowspan="2" width="15%">委託分析項目</td>
-                <td rowspan="2" width="6%">體積<br>(mL)</td>
-                <td rowspan="2" width="5%">數量</td>
-                <td rowspan="2" width="8%">保存方式<br>代號</td>
-                <td rowspan="2" width="8%">樣品編號<br><span style="font-size:10px;">(檢驗室填)</span></td>
-                <td colspan="4">現場量測紀錄</td>
-                <td rowspan="2" width="7%" class="no-print">操作</td>
-            </tr>
-            <tr>
-                <td width="4%">pH</td>
-                <td width="4%">水溫℃</td>
-                <td width="4%">導電度</td>
-                <td width="4%">其他</td>
-            </tr>
-        </thead>
-        <tbody id="dynamicBody">
-            </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="14" style="text-align: center; background-color: #f9f9f9; padding: 2px;">以下空白</td>
-            </tr>
-        </tfoot>
-    </table>
-
-    <div class="footer-note">
-        <b>樣品保存方式代號說明：</b><br>
-        &nbsp;&nbsp;R： 4±2℃冷藏。<br>
-        &nbsp;&nbsp;R-SH： 加氫氧化鈉pH>12,暗處,4±2℃冷藏。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;R-SA： 加硫酸pH<2,4±2℃冷藏。<br>
-        &nbsp;&nbsp;R-AS： 加醋酸鋅與氫氧化鈉使pH>9,4±2℃冷藏。&nbsp;&nbsp;&nbsp;R-NA： 加低汞硝酸pH<2,4±2℃冷藏。<br>
-        &nbsp;&nbsp;R-SF： 加硫酸0.7mL與1mL疊氮化鈉,4±2℃水封保存。<br>
-        &nbsp;&nbsp;R-CA： 加低汞鹽酸pH<2,4±2℃冷藏(甲基汞：1L水樣加4mL 12M低汞鹽酸)。
-    </div>
-
-    <table class="bottom-table">
-        <tr>
-            <td width="50%" class="th-bg">樣品登錄查核</td>
-            <td width="50%" class="th-bg">樣品處理情形</td>
-        </tr>
-        <tr>
-            <td>
-                1.樣品是否密封完整： □是，□否；<br>
-                2.樣品標示是否清楚： □是，□否；<br>
-                3.容器是否破漏： □是，□否；<br>
-                4.樣品數與樣品量是否足夠： □是，□否；<br>
-                5.樣品保存方式是否符合規定： □是，□否；<br>
-                6.樣品是否保持4 ± 2 ℃ ： □是，□否；<br>
-                7.樣品盛裝容器是否正確： □是，□否；<br>
-                8. VOCs樣品是否無氣泡： □是，□否；<br>
-                9.收樣日期：<input type="text" class="sm-input" style="width: 80px;"> 
-                  收樣時間：<input type="text" class="sm-input" style="width: 80px;"><br>
-                &nbsp;&nbsp;&nbsp;收樣人員：<input type="text" class="sm-input" style="width: 120px;">
-            </td>
-            <td>
-                委外與否：□是，□否；<br>
-                若是，□全部轉包 □部份轉包；<br>
-                委外項目：<input type="text" class="sm-input" style="width: 70%;"><br>
-                轉委託公司名稱：<input type="text" class="sm-input" style="width: 60%;"><br>
-                有無徵求客戶同意；□有，□無<br>
-                備註： 如無特殊要求，皆依本檢驗室之檢測方法檢測： □同意□不同意，<br>
-                要求事項：<input type="text" value="PH 、 水溫 、導電度數值由環保局提供。" style="width: 90%;">
-            </td>
-        </tr>
-    </table>
-
-    <table class="no-border-table" style="width: 100%; margin-top: 5px;">
-        <tr>
-            <td width="50%">品保品管員：</td>
-            <td width="50%">檢驗室主管：</td>
-        </tr>
-    </table>
-    
-    <div style="text-align: right; font-size: 12px; margin-top: 15px;">
-        表單編號:R-QM11-03-1.0<br>
-        實施日期: 110 年01月01日
-    </div>
-
-</div>
-
-<div class="btn-group no-print" id="mainBtns">
-    <button id="addRowBtn" onclick="addSample()">新增採樣地點</button>
-    <button id="downloadBtn" onclick="exportToWord()">下載文件 (.doc)</button>
-    <button id="previewBtn" onclick="togglePreview(true)">預覽 (截圖 / PDF)</button>
-</div>
-
-<div class="floating-bar" id="floatBtns">
-    <button id="exitPreviewBtn" onclick="togglePreview(false)">退出預覽</button>
-    <button id="printPdfBtn" onclick="window.print()">列印成 PDF</button>
+    <button class="btn btn-primary" onclick="generateWord()">匯出正式檢驗申請單 (.doc)</button>
 </div>
 
 <script>
+    // 預設日期時間
+    const getToday = () => new Date().toISOString().split('T')[0];
+    const getNow = () => new Date().toTimeString().split(' ')[0].substring(0,5);
+    
+    // 初始化畫面
     window.onload = function() {
-        document.getElementById('appDate').valueAsDate = new Date();
-        addSample(); 
+        addSample(); // 預設提供一個採樣地點
     };
 
+    // 新增一個採樣地點 (卡片)
     function addSample() {
-        const table = document.getElementById('sampleTable');
-        const tfoot = table.querySelector('tfoot');
-        const tbody = document.createElement('tbody');
-        
-        const today = new Date().toISOString().split('T')[0];
-        const now = new Date().toTimeString().split(' ')[0].substring(0,5);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="span-cell"><input type="text" value="放流口"></td>
-            <td class="span-cell"><input type="date" value="${today}"></td>
-            <td class="span-cell"><input type="time" value="${now}"></td>
-            <td class="span-cell">
-                <select>
-                    <option value="透明">透明</option>
-                    <option value="微濁">微濁</option>
-                    <option value="混濁">混濁</option>
-                    <option value="其他">其他</option>
-                </select>
-            </td>
-            <td><input type="text" placeholder="SS, BOD..."></td>
-            <td><input type="text" placeholder="體積"></td>
-            <td><input type="text" placeholder="數量"></td>
-            <td>
-                <select>
-                    <option value="R">R</option>
-                    <option value="R-SA">R-SA</option>
-                    <option value="R-NA">R-NA</option>
-                    <option value="R-SH">R-SH</option>
-                    <option value="R-AS">R-AS</option>
-                    <option value="R-SF">R-SF</option>
-                    <option value="R-CA">R-CA</option>
-                </select>
-            </td>
-            <td></td>
-            <td class="span-cell"><input type="text" value="7.57"></td>
-            <td class="span-cell"><input type="text" value="25.0"></td>
-            <td class="span-cell"><input type="text" value="2510"></td>
-            <td class="span-cell"><input type="text"></td>
-            <td class="span-cell no-print">
-                <button class="action-btn btn-add-item" onclick="addItem(this)">+項目</button>
-                <button class="action-btn btn-del-sample" onclick="removeSample(this)">刪除地點</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-        table.insertBefore(tbody, tfoot); 
-    }
-
-    function addItem(btn) {
-        const tbody = btn.closest('tbody');
-        const firstTr = tbody.querySelector('tr');
-        
-        const spanCells = firstTr.querySelectorAll('.span-cell');
-        spanCells.forEach(cell => {
-            cell.rowSpan = (cell.rowSpan || 1) + 1;
-        });
-
-        const newTr = document.createElement('tr');
-        newTr.innerHTML = `
-            <td>
-                <div class="flex-input-group">
-                    <input type="text" placeholder="附加分析項目">
-                    <button class="btn-del-item no-print" onclick="removeItem(this)" title="刪除此項目">X</button>
-                </div>
-            </td>
-            <td><input type="text" placeholder="體積"></td>
-            <td><input type="text" placeholder="數量"></td>
-            <td>
-                <select>
-                    <option value="R">R</option>
-                    <option value="R-SA">R-SA</option>
-                    <option value="R-NA">R-NA</option>
-                    <option value="R-SH">R-SH</option>
-                    <option value="R-AS">R-AS</option>
-                    <option value="R-SF">R-SF</option>
-                    <option value="R-CA">R-CA</option>
-                </select>
-            </td>
-            <td></td>
-        `;
-        tbody.appendChild(newTr);
-    }
-
-    function removeItem(btn) {
-        const tr = btn.closest('tr');
-        const tbody = tr.closest('tbody');
-        const firstTr = tbody.querySelector('tr');
-        
-        const spanCells = firstTr.querySelectorAll('.span-cell');
-        spanCells.forEach(cell => {
-            cell.rowSpan = Math.max(1, (cell.rowSpan || 1) - 1);
-        });
-
-        tr.remove();
-    }
-
-    function removeSample(btn) {
-        btn.closest('tbody').remove();
-    }
-
-    function togglePreview(isEntering) {
-        if (isEntering) {
-            document.body.classList.add('preview-mode');
-            window.scrollTo(0, 0); 
-        } else {
-            document.body.classList.remove('preview-mode');
-        }
-    }
-
-    function getTimestamp() {
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const hh = String(now.getHours()).padStart(2, '0');
-        const min = String(now.getMinutes()).padStart(2, '0');
-        return `${yyyy}${mm}${dd}_${hh}${min}`;
-    }
-
-    function exportToWord() {
-        let clone = document.getElementById("exportContent").cloneNode(true);
-        let originalInputs = document.getElementById("exportContent").querySelectorAll('input, select');
-        let cloneInputs = clone.querySelectorAll('input, select');
-        
-        for (let i = 0; i < originalInputs.length; i++) {
-            let val = originalInputs[i].value;
-            let textNode = document.createTextNode(val || " "); 
-            cloneInputs[i].parentNode.replaceChild(textNode, cloneInputs[i]);
-        }
-
-        let noPrintElements = clone.querySelectorAll('.no-print');
-        noPrintElements.forEach(el => el.remove());
-
-        // 核心設定：利用 mso-line-height-rule 強制消除 Word 段落間距與縮排
-        let header = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-              xmlns:w='urn:schemas-microsoft-com:office:word' 
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset='utf-8'>
-            <title>樣品檢驗申請單</title>
-            <style>
-                @page WordSection1 {
-                    size: 595.3pt 841.9pt; /* A4 直式 */
-                    margin: 36.0pt 36.0pt 36.0pt 36.0pt; /* 窄邊界 */
-                    mso-header-margin: 36.0pt;
-                    mso-footer-margin: 36.0pt;
-                    mso-paper-source: 0;
-                }
-                div.WordSection1 { page: WordSection1; }
-                
-                /* 強制將所有行距與縮排歸零 */
-                body, p, div, td, th, span {
-                    font-family: '標楷體', DFKai-SB, serif;
-                    font-size: 11pt;
-                    margin: 0pt;
-                    padding: 0pt;
-                    text-indent: 0pt;
-                    line-height: 100%;
-                    mso-line-height-rule: exactly;
-                }
-                
-                h2 { text-align: center; font-size: 18pt; margin: 0; font-family: '標楷體', DFKai-SB, serif; }
-                h3 { text-align: center; font-size: 16pt; margin: 5pt 0 15pt 0; font-family: '標楷體', DFKai-SB, serif; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 5pt; }
-                th, td { border: 1px solid black; padding: 2pt 4pt; text-align: center; vertical-align: middle; }
-                .th-bg { background-color: #e6e6e6; font-weight: bold; }
-                .text-left { text-align: left; }
-                .footer-note { font-size: 10pt; line-height: 1.2; margin-bottom: 5pt; }
-                .bottom-table td { text-align: left; vertical-align: top; line-height: 1.2; padding: 4pt; }
-                .no-border-table td { border: none; text-align: left; padding: 2pt; }
-            </style>
-        </head>
-        <body>
-            <div class="WordSection1">
-        `;
-        let footer = "</div></body></html>";
-        let sourceHTML = header + clone.innerHTML + footer;
-
-        let blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-        let url = URL.createObjectURL(blob);
-        let fileDownload = document.createElement("a");
-        document.body.appendChild(fileDownload);
-        
-        let timestamp = getTimestamp();
-        fileDownload.href = url;
-        fileDownload.download = `樣品檢驗申請單_環保局_${timestamp}.doc`;
-        
-        fileDownload.click();
-        document.body.removeChild(fileDownload);
-        URL.revokeObjectURL(url);
-    }
-</script>
-
-</body>
-</html>
+        const container = document.getElementById('samplesContainer');
+        const sampleIndex = container.children.length;
+        const card = document.createElement('div');
+        card.className = 'card sample-card';
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                <div style="font-size: 16px; font-weight: bold; color:
