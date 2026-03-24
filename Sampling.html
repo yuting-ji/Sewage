@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>水質採樣計錄表</title>
+    <title>水質採樣紀錄表</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'LiHei Pro', sans-serif;
@@ -161,7 +161,7 @@
 <body>
 
 <div class="container" id="captureArea">
-    <h2>水質採樣計錄</h2>
+    <h2>水質採樣紀錄</h2>
     
     <form id="samplingForm">
         <div class="form-group">
@@ -230,9 +230,9 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-add" onclick="addAnalysisRow()">+ 繼續新增分析項目</button>
+        <button type="button" class="btn btn-add" onclick="addAnalysisRow()">+ 新增分析項目</button>
 
-        <div class="section-title">現場量測記錄</div>
+        <div class="section-title">現場量測紀錄</div>
         
         <div id="measurementContainer">
             <div class="dynamic-row measure-item">
@@ -250,7 +250,7 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-add" onclick="addMeasurementRow()">+ 增加其他現場量測</button>
+        <button type="button" class="btn btn-add" onclick="addMeasurementRow()">+ 新增其他量測</button>
 
         <div class="action-buttons">
             <button type="button" class="btn btn-word" onclick="downloadWord()">下載 Word 文件</button>
@@ -365,7 +365,7 @@
             <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
             <head>
                 <meta charset='utf-8'>
-                <title>水質採樣計錄</title>
+                <title>水質採樣紀錄</title>
                 <style>
                     body { font-family: '標楷體', '微軟正黑體', sans-serif; }
                     table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
@@ -374,7 +374,7 @@
                 </style>
             </head>
             <body>
-                <h2>水質採樣計錄</h2>
+                <h2>水質採樣紀錄</h2>
                 <table>
                     <tr><th width="20%">採樣單位</th><td width="30%">${unit}</td><th width="20%">送樣人員</th><td width="30%">${deliverer}</td></tr>
                     <tr><th>採樣地點</th><td colspan="3">${location}</td></tr>
@@ -388,7 +388,7 @@
                     ${analysisHTML}
                 </table>
 
-                <h3>現場量測記錄</h3>
+                <h3>現場量測紀錄</h3>
                 <ul>
                     ${measureHTML}
                 </ul>
@@ -400,7 +400,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `採樣計錄_${date ? date : '未命名'}.doc`;
+        link.download = `採樣紀錄_${date ? date : '未命名'}.doc`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
