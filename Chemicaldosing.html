@@ -8,6 +8,7 @@
     <style>
         :root {
             --primary: #0056b3;
+            --secondary: #17a2b8;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
             --text-main: #333333;
@@ -50,6 +51,10 @@
             border-bottom: 2px solid var(--primary);
             padding-bottom: 5px;
         }
+        .card.jar-test h2 {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+        }
         .input-group {
             margin-bottom: 12px;
             display: flex;
@@ -72,6 +77,9 @@
         .input-group input:focus {
             outline: none;
             border-color: var(--primary);
+        }
+        .card.jar-test .input-group input:focus {
+            border-color: var(--secondary);
         }
         .bottom-bar {
             position: fixed;
@@ -122,7 +130,7 @@
             padding: 10px;
             border-radius: 4px;
             max-width: 90%;
-            max-height: 70%;
+            max-height: 85%;
             overflow: auto;
         }
         #preview-content img {
@@ -178,6 +186,22 @@
             <div class="input-group">
                 <label>用量 (公斤)</label>
                 <input type="number" id="poly-amt" placeholder="自動計算用量" oninput="calcPoly('amt')">
+            </div>
+        </div>
+
+        <div class="card jar-test">
+            <h2>瓶杯試驗 (小量測試)</h2>
+            <div class="input-group">
+                <label>水量 (ml)</label>
+                <input type="number" id="jar-vol" placeholder="例如: 500" oninput="calcJar('vol')">
+            </div>
+            <div class="input-group">
+                <label>添加濃度 (mg/L)</label>
+                <input type="number" id="jar-conc" placeholder="例如: 20" oninput="calcJar('conc')">
+            </div>
+            <div class="input-group">
+                <label>藥劑重量 (mg)</label>
+                <input type="number" id="jar-amt" placeholder="自動計算重量" oninput="calcJar('amt')">
             </div>
         </div>
     </div>
@@ -262,6 +286,25 @@
             }
         }
 
+        // 瓶杯試驗 (Jar Test) 計算邏輯 (濃度 mg/L = 藥劑重量 mg / 體積 L)
+        function calcJar(changed) {
+            let vol = parseFloat(document.getElementById('jar-vol').value); // ml
+            let conc = parseFloat(document.getElementById('jar-conc').value); // mg/L
+            let amt = parseFloat(document.getElementById('jar-amt').value); // mg
+
+            if (changed === 'vol' || changed === 'conc') {
+                if (!isNaN(vol) && !isNaN(conc)) {
+                    // 重量(mg) = 濃度(mg/L) * (水量ml / 1000)
+                    document.getElementById('jar-amt').value = (conc * (vol / 1000)).toFixed(2);
+                }
+            } else if (changed === 'amt') {
+                if (!isNaN(amt) && !isNaN(vol) && vol > 0) {
+                    // 濃度(mg/L) = 重量(mg) / (水量ml / 1000)
+                    document.getElementById('jar-conc').value = (amt / (vol / 1000)).toFixed(2);
+                }
+            }
+        }
+
         // 一鍵清除
         function clearAll() {
             if(confirm("確定要清除所有輸入的數值嗎？")) {
@@ -272,12 +315,17 @@
                 document.getElementById('poly-vol').value = '';
                 document.getElementById('poly-conc').value = '0.0001';
                 document.getElementById('poly-amt').value = '';
+
+                document.getElementById('jar-vol').value = '';
+                document.getElementById('jar-conc').value = '';
+                document.getElementById('jar-amt').value = '';
             }
         }
 
         // 下載 Word 檔
         function downloadWord() {
             const dateStr = new Date().toLocaleString('zh-TW');
+            
             const pacVol = document.getElementById('pac-vol').value || '0';
             const pacConc = document.getElementById('pac-conc').value || '0';
             const pacAmt = document.getElementById('pac-amt').value || '0';
@@ -286,13 +334,19 @@
             const polyConc = document.getElementById('poly-conc').value || '0';
             const polyAmt = document.getElementById('poly-amt').value || '0';
 
+            const jarVol = document.getElementById('jar-vol').value || '0';
+            const jarConc = document.getElementById('jar-conc').value || '0';
+            const jarAmt = document.getElementById('jar-amt').value || '0';
+
             const htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><title>加藥量紀錄表</title></head>
                 <body>
                     <h2>污水處理加藥量紀錄表</h2>
                     <p>記錄時間：${dateStr}</p>
-                    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                    
+                    <h3>廠區大水量加藥紀錄</h3>
+                    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 20px;">
                         <tr>
                             <th style="background-color: #f2f2f2;">藥劑種類</th>
                             <th style="background-color: #f2f2f2;">水量 (噸)</th>
@@ -310,6 +364,22 @@
                             <td align="right">${polyVol}</td>
                             <td align="right">${polyConc}</td>
                             <td align="right">${polyAmt}</td>
+                        </tr>
+                    </table>
+
+                    <h3>瓶杯試驗 (小量測試) 紀錄</h3>
+                    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                        <tr>
+                            <th style="background-color: #e9ecef;">測試項目</th>
+                            <th style="background-color: #e9ecef;">水量 (ml)</th>
+                            <th style="background-color: #e9ecef;">添加濃度 (mg/L)</th>
+                            <th style="background-color: #e9ecef;">藥劑重量 (mg)</th>
+                        </tr>
+                        <tr>
+                            <td align="center">小量測試</td>
+                            <td align="right">${jarVol}</td>
+                            <td align="right">${jarConc}</td>
+                            <td align="right">${jarAmt}</td>
                         </tr>
                     </table>
                 </body>
