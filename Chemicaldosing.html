@@ -19,7 +19,7 @@
             color: var(--text-main);
             margin: 0;
             padding: 0;
-            padding-bottom: 80px; /* 留出底部導覽列空間 */
+            padding-bottom: 80px;
         }
         .header {
             background-color: var(--primary);
@@ -73,7 +73,6 @@
             outline: none;
             border-color: var(--primary);
         }
-        /* 底部固定列 */
         .bottom-bar {
             position: fixed;
             bottom: 0;
@@ -105,7 +104,6 @@
         .btn-word { color: #28a745 !important; }
         .btn-preview { color: var(--primary) !important; }
         
-        /* 預覽視窗 */
         #preview-modal {
             display: none;
             position: fixed;
@@ -159,7 +157,7 @@
             </div>
             <div class="input-group">
                 <label>濃度 (kg/噸)</label>
-                <input type="number" id="pac-conc" value="0.1" step="0.01" oninput="calcPAC('conc')">
+                <input type="number" id="pac-conc" value="0.01" step="0.01" oninput="calcPAC('conc')" onblur="checkPacConc()">
             </div>
             <div class="input-group">
                 <label>用量 (公斤)</label>
@@ -175,7 +173,7 @@
             </div>
             <div class="input-group">
                 <label>濃度 (kg/噸)</label>
-                <input type="number" id="poly-conc" value="0.0001" step="0.00001" oninput="calcPoly('conc')" onblur="checkPolyConc()">
+                <input type="number" id="poly-conc" value="0.0001" step="0.0001" oninput="calcPoly('conc')" onblur="checkPolyConc()">
             </div>
             <div class="input-group">
                 <label>用量 (公斤)</label>
@@ -198,7 +196,7 @@
     </div>
 
     <script>
-        // PAC 計算邏輯 (用量 = 水量 * 濃度)
+        // PAC 計算邏輯
         function calcPAC(changed) {
             let vol = parseFloat(document.getElementById('pac-vol').value);
             let conc = parseFloat(document.getElementById('pac-conc').value);
@@ -210,8 +208,24 @@
                 }
             } else if (changed === 'amt') {
                 if (!isNaN(amt) && !isNaN(vol) && vol > 0) {
-                    document.getElementById('pac-conc').value = (amt / vol).toFixed(4);
+                    let newConc = amt / vol;
+                    if (newConc > 0.1) {
+                        alert("注意：換算之 PAC 濃度超出上限 0.1！");
+                        newConc = 0.1;
+                        document.getElementById('pac-amt').value = (vol * newConc).toFixed(2);
+                    }
+                    document.getElementById('pac-conc').value = newConc.toFixed(4);
                 }
+            }
+        }
+
+        // PAC 濃度上限驗證
+        function checkPacConc() {
+            let conc = parseFloat(document.getElementById('pac-conc').value);
+            if (conc > 0.1) {
+                alert("PAC 濃度不可超過上限 0.1！已自動修正。");
+                document.getElementById('pac-conc').value = 0.1;
+                calcPAC('conc');
             }
         }
 
@@ -252,11 +266,11 @@
         function clearAll() {
             if(confirm("確定要清除所有輸入的數值嗎？")) {
                 document.getElementById('pac-vol').value = '';
-                document.getElementById('pac-conc').value = '0.1';
+                document.getElementById('pac-conc').value = '0.01';
                 document.getElementById('pac-amt').value = '';
                 
                 document.getElementById('poly-vol').value = '';
-                document.getElementById('poly-conc').value = '0.001';
+                document.getElementById('poly-conc').value = '0.0001';
                 document.getElementById('poly-amt').value = '';
             }
         }
@@ -324,10 +338,9 @@
             previewContent.innerHTML = '<p style="color:white;">正在產生預覽圖...</p>';
             modal.classList.add('active');
 
-            // 確保樣式轉換正確，稍微延遲以確保畫面更新
             setTimeout(() => {
                 html2canvas(captureArea, {
-                    scale: 2, // 提高解析度
+                    scale: 2,
                     backgroundColor: "#f4f7f6"
                 }).then(canvas => {
                     const img = document.createElement('img');
@@ -335,7 +348,6 @@
                     previewContent.innerHTML = '';
                     previewContent.appendChild(img);
                     
-                    // 新增儲存圖片按鈕
                     const saveBtn = document.createElement('button');
                     saveBtn.textContent = '長按圖片儲存，或點此下載';
                     saveBtn.style.marginTop = '10px';
