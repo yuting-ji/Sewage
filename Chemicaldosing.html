@@ -30,11 +30,22 @@
             font-size: 1.2rem;
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 500;
         }
         .container {
             padding: 15px;
             max-width: 600px;
             margin: 0 auto;
+        }
+        .section-title {
+            text-align: center;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px dashed #ccc;
         }
         .card {
             background: var(--card-bg);
@@ -46,14 +57,14 @@
         }
         .card h2 {
             margin-top: 0;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--primary);
             border-bottom: 2px solid var(--primary);
             padding-bottom: 5px;
         }
         .card.jar-test h2 {
             color: var(--secondary);
-            border-bottom-color: var(--secondary);
+            border-bottom: 2px solid var(--secondary);
         }
         .input-group {
             margin-bottom: 12px;
@@ -73,13 +84,12 @@
             border-radius: 4px;
             font-size: 1rem;
             text-align: right;
+            width: 100%;
+            box-sizing: border-box;
         }
         .input-group input:focus {
             outline: none;
             border-color: var(--primary);
-        }
-        .card.jar-test .input-group input:focus {
-            border-color: var(--secondary);
         }
         .bottom-bar {
             position: fixed;
@@ -130,15 +140,16 @@
             padding: 10px;
             border-radius: 4px;
             max-width: 90%;
-            max-height: 85%;
-            overflow: auto;
+            max-height: 80%;
+            overflow-y: auto;
         }
         #preview-content img {
             max-width: 100%;
             height: auto;
+            display: block;
         }
         .modal-actions {
-            margin-top: 20px;
+            margin-top: 15px;
             display: flex;
             gap: 10px;
         }
@@ -157,6 +168,9 @@
     <div class="header">加藥量計算與紀錄系統</div>
 
     <div class="container" id="capture-area">
+        
+        <div class="section-title">🏭 現場大廠加藥計算</div>
+
         <div class="card">
             <h2>PAC 加藥計算</h2>
             <div class="input-group">
@@ -189,21 +203,48 @@
             </div>
         </div>
 
+        <div class="section-title">🧪 瓶杯試驗 (Jar Test) 小量計算</div>
+
         <div class="card jar-test">
-            <h2>瓶杯試驗 (小量測試)</h2>
+            <h2>PAC 小量計算</h2>
             <div class="input-group">
-                <label>水量 (ml)</label>
-                <input type="number" id="jar-vol" placeholder="例如: 500" oninput="calcJar('vol')">
+                <label>廢水量 (ml)</label>
+                <input type="number" id="jar-pac-vol" value="1000" oninput="calcJarPAC('dose')">
             </div>
             <div class="input-group">
-                <label>添加濃度 (mg/L)</label>
-                <input type="number" id="jar-conc" placeholder="例如: 20" oninput="calcJar('conc')">
+                <label>藥劑濃度 (%)</label>
+                <input type="number" id="jar-pac-conc" value="1.0" step="0.1" oninput="calcJarPAC('dose')">
             </div>
             <div class="input-group">
-                <label>藥劑重量 (mg)</label>
-                <input type="number" id="jar-amt" placeholder="自動計算重量" oninput="calcJar('amt')">
+                <label>目標用量 (mg/L)</label>
+                <input type="number" id="jar-pac-dose" placeholder="例: 100" oninput="calcJarPAC('add')">
+            </div>
+            <div class="input-group">
+                <label style="color:#d9534f; font-weight:bold;">添加量 (ml)</label>
+                <input type="number" id="jar-pac-add" placeholder="需滴加體積" oninput="calcJarPAC('dose')">
             </div>
         </div>
+
+        <div class="card jar-test">
+            <h2>Polymer 小量計算</h2>
+            <div class="input-group">
+                <label>廢水量 (ml)</label>
+                <input type="number" id="jar-poly-vol" value="1000" oninput="calcJarPoly('dose')">
+            </div>
+            <div class="input-group">
+                <label>藥劑濃度 (%)</label>
+                <input type="number" id="jar-poly-conc" value="0.10" step="0.01" oninput="calcJarPoly('dose')">
+            </div>
+            <div class="input-group">
+                <label>目標用量 (mg/L)</label>
+                <input type="number" id="jar-poly-dose" placeholder="例: 2" oninput="calcJarPoly('add')">
+            </div>
+            <div class="input-group">
+                <label style="color:#d9534f; font-weight:bold;">添加量 (ml)</label>
+                <input type="number" id="jar-poly-add" placeholder="需滴加體積" oninput="calcJarPoly('dose')">
+            </div>
+        </div>
+
     </div>
 
     <div class="bottom-bar">
@@ -220,7 +261,7 @@
     </div>
 
     <script>
-        // PAC 計算邏輯
+        /* ================= 現場大廠計算邏輯 ================= */
         function calcPAC(changed) {
             let vol = parseFloat(document.getElementById('pac-vol').value);
             let conc = parseFloat(document.getElementById('pac-conc').value);
@@ -243,7 +284,6 @@
             }
         }
 
-        // PAC 濃度上限驗證
         function checkPacConc() {
             let conc = parseFloat(document.getElementById('pac-conc').value);
             if (conc > 0.1) {
@@ -253,7 +293,6 @@
             }
         }
 
-        // Polymer 計算邏輯
         function calcPoly(changed) {
             let vol = parseFloat(document.getElementById('poly-vol').value);
             let conc = parseFloat(document.getElementById('poly-conc').value);
@@ -276,7 +315,6 @@
             }
         }
 
-        // Polymer 濃度上限驗證
         function checkPolyConc() {
             let conc = parseFloat(document.getElementById('poly-conc').value);
             if (conc > 0.0012) {
@@ -286,66 +324,90 @@
             }
         }
 
-        // 瓶杯試驗 (Jar Test) 計算邏輯 (濃度 mg/L = 藥劑重量 mg / 體積 L)
-        function calcJar(changed) {
-            let vol = parseFloat(document.getElementById('jar-vol').value); // ml
-            let conc = parseFloat(document.getElementById('jar-conc').value); // mg/L
-            let amt = parseFloat(document.getElementById('jar-amt').value); // mg
+        /* ================= 瓶杯試驗計算邏輯 ================= */
+        // 公式：添加量(ml) = [目標用量(mg/L) * 廢水量(ml)] / [濃度(%) * 10000]
+        function calcJarPAC(target) {
+            let vol = parseFloat(document.getElementById('jar-pac-vol').value);
+            let conc = parseFloat(document.getElementById('jar-pac-conc').value);
+            let dose = parseFloat(document.getElementById('jar-pac-dose').value);
+            let add = parseFloat(document.getElementById('jar-pac-add').value);
 
-            if (changed === 'vol' || changed === 'conc') {
-                if (!isNaN(vol) && !isNaN(conc)) {
-                    // 重量(mg) = 濃度(mg/L) * (水量ml / 1000)
-                    document.getElementById('jar-amt').value = (conc * (vol / 1000)).toFixed(2);
-                }
-            } else if (changed === 'amt') {
-                if (!isNaN(amt) && !isNaN(vol) && vol > 0) {
-                    // 濃度(mg/L) = 重量(mg) / (水量ml / 1000)
-                    document.getElementById('jar-conc').value = (amt / (vol / 1000)).toFixed(2);
+            if (!isNaN(vol) && !isNaN(conc) && conc > 0) {
+                if (target === 'add' && !isNaN(dose)) {
+                    document.getElementById('jar-pac-add').value = ((dose * vol) / (conc * 10000)).toFixed(2);
+                } else if (target === 'dose' && !isNaN(add)) {
+                    document.getElementById('jar-pac-dose').value = ((add * conc * 10000) / vol).toFixed(2);
                 }
             }
         }
 
-        // 一鍵清除
+        function calcJarPoly(target) {
+            let vol = parseFloat(document.getElementById('jar-poly-vol').value);
+            let conc = parseFloat(document.getElementById('jar-poly-conc').value);
+            let dose = parseFloat(document.getElementById('jar-poly-dose').value);
+            let add = parseFloat(document.getElementById('jar-poly-add').value);
+
+            if (!isNaN(vol) && !isNaN(conc) && conc > 0) {
+                if (target === 'add' && !isNaN(dose)) {
+                    document.getElementById('jar-poly-add').value = ((dose * vol) / (conc * 10000)).toFixed(2);
+                } else if (target === 'dose' && !isNaN(add)) {
+                    document.getElementById('jar-poly-dose').value = ((add * conc * 10000) / vol).toFixed(2);
+                }
+            }
+        }
+
+        /* ================= 系統功能 ================= */
         function clearAll() {
             if(confirm("確定要清除所有輸入的數值嗎？")) {
+                // 大廠重置
                 document.getElementById('pac-vol').value = '';
                 document.getElementById('pac-conc').value = '0.01';
                 document.getElementById('pac-amt').value = '';
-                
                 document.getElementById('poly-vol').value = '';
                 document.getElementById('poly-conc').value = '0.0001';
                 document.getElementById('poly-amt').value = '';
-
-                document.getElementById('jar-vol').value = '';
-                document.getElementById('jar-conc').value = '';
-                document.getElementById('jar-amt').value = '';
+                
+                // 瓶杯試驗重置
+                document.getElementById('jar-pac-vol').value = '1000';
+                document.getElementById('jar-pac-conc').value = '1.0';
+                document.getElementById('jar-pac-dose').value = '';
+                document.getElementById('jar-pac-add').value = '';
+                document.getElementById('jar-poly-vol').value = '1000';
+                document.getElementById('jar-poly-conc').value = '0.10';
+                document.getElementById('jar-poly-dose').value = '';
+                document.getElementById('jar-poly-add').value = '';
             }
         }
 
-        // 下載 Word 檔
         function downloadWord() {
             const dateStr = new Date().toLocaleString('zh-TW');
             
+            // 抓取現場資料
             const pacVol = document.getElementById('pac-vol').value || '0';
             const pacConc = document.getElementById('pac-conc').value || '0';
             const pacAmt = document.getElementById('pac-amt').value || '0';
-            
             const polyVol = document.getElementById('poly-vol').value || '0';
             const polyConc = document.getElementById('poly-conc').value || '0';
             const polyAmt = document.getElementById('poly-amt').value || '0';
 
-            const jarVol = document.getElementById('jar-vol').value || '0';
-            const jarConc = document.getElementById('jar-conc').value || '0';
-            const jarAmt = document.getElementById('jar-amt').value || '0';
+            // 抓取瓶杯資料
+            const jPacVol = document.getElementById('jar-pac-vol').value || '0';
+            const jPacConc = document.getElementById('jar-pac-conc').value || '0';
+            const jPacDose = document.getElementById('jar-pac-dose').value || '0';
+            const jPacAdd = document.getElementById('jar-pac-add').value || '0';
+            const jPolyVol = document.getElementById('jar-poly-vol').value || '0';
+            const jPolyConc = document.getElementById('jar-poly-conc').value || '0';
+            const jPolyDose = document.getElementById('jar-poly-dose').value || '0';
+            const jPolyAdd = document.getElementById('jar-poly-add').value || '0';
 
             const htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>加藥量紀錄表</title></head>
+                <head><meta charset='utf-8'><title>加藥量與試驗紀錄表</title></head>
                 <body>
                     <h2>污水處理加藥量紀錄表</h2>
                     <p>記錄時間：${dateStr}</p>
                     
-                    <h3>廠區大水量加藥紀錄</h3>
+                    <h3>一、現場加藥計算</h3>
                     <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-bottom: 20px;">
                         <tr>
                             <th style="background-color: #f2f2f2;">藥劑種類</th>
@@ -367,51 +429,59 @@
                         </tr>
                     </table>
 
-                    <h3>瓶杯試驗 (小量測試) 紀錄</h3>
+                    <h3>二、瓶杯試驗 (Jar Test)</h3>
                     <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                         <tr>
-                            <th style="background-color: #e9ecef;">測試項目</th>
-                            <th style="background-color: #e9ecef;">水量 (ml)</th>
-                            <th style="background-color: #e9ecef;">添加濃度 (mg/L)</th>
-                            <th style="background-color: #e9ecef;">藥劑重量 (mg)</th>
+                            <th style="background-color: #e6f7ff;">藥劑種類</th>
+                            <th style="background-color: #e6f7ff;">廢水量 (ml)</th>
+                            <th style="background-color: #e6f7ff;">藥劑濃度 (%)</th>
+                            <th style="background-color: #e6f7ff;">用量 (mg/L)</th>
+                            <th style="background-color: #e6f7ff;">添加量 (ml)</th>
                         </tr>
                         <tr>
-                            <td align="center">小量測試</td>
-                            <td align="right">${jarVol}</td>
-                            <td align="right">${jarConc}</td>
-                            <td align="right">${jarAmt}</td>
+                            <td align="center">PAC</td>
+                            <td align="right">${jPacVol}</td>
+                            <td align="right">${jPacConc}</td>
+                            <td align="right">${jPacDose}</td>
+                            <td align="right">${jPacAdd}</td>
+                        </tr>
+                        <tr>
+                            <td align="center">Polymer</td>
+                            <td align="right">${jPolyVol}</td>
+                            <td align="right">${jPolyConc}</td>
+                            <td align="right">${jPolyDose}</td>
+                            <td align="right">${jPolyAdd}</td>
                         </tr>
                     </table>
                 </body>
                 </html>
             `;
 
-            const blob = new Blob(['\ufeff', htmlContent], {
-                type: 'application/msword'
-            });
+            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `加藥量紀錄_${new Date().getTime()}.doc`;
+            link.download = `加藥與試驗紀錄_${new Date().getTime()}.doc`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
 
-        // 預覽(截圖)
         function showPreview() {
             const captureArea = document.getElementById('capture-area');
             const modal = document.getElementById('preview-modal');
             const previewContent = document.getElementById('preview-content');
             
-            previewContent.innerHTML = '<p style="color:white;">正在產生預覽圖...</p>';
+            previewContent.innerHTML = '<p style="color:white; text-align:center;">正在產生預覽圖...</p>';
             modal.classList.add('active');
 
             setTimeout(() => {
                 html2canvas(captureArea, {
-                    scale: 2,
-                    backgroundColor: "#f4f7f6"
+                    scale: window.devicePixelRatio || 2, // 根據設備像素比例提升清晰度
+                    backgroundColor: "#f4f7f6",
+                    windowWidth: captureArea.scrollWidth,
+                    windowHeight: captureArea.scrollHeight
                 }).then(canvas => {
                     const img = document.createElement('img');
                     img.src = canvas.toDataURL('image/png');
@@ -420,13 +490,14 @@
                     
                     const saveBtn = document.createElement('button');
                     saveBtn.textContent = '長按圖片儲存，或點此下載';
-                    saveBtn.style.marginTop = '10px';
+                    saveBtn.style.marginTop = '15px';
                     saveBtn.style.width = '100%';
-                    saveBtn.style.padding = '10px';
+                    saveBtn.style.padding = '12px';
                     saveBtn.style.background = '#28a745';
                     saveBtn.style.color = 'white';
                     saveBtn.style.border = 'none';
                     saveBtn.style.borderRadius = '4px';
+                    saveBtn.style.fontWeight = 'bold';
                     saveBtn.onclick = () => {
                         const link = document.createElement('a');
                         link.download = `加藥計算截圖_${new Date().getTime()}.png`;
