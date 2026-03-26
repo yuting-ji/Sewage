@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>污水處理加藥量計算與紀錄</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --border-color: #dddddd;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px; /* 留出底部導覽列空間 */
+        }
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
+        }
+        .input-group {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .input-group label {
+            flex: 1;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .input-group input {
+            flex: 1.5;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            text-align: right;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        /* 底部固定列 */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .bottom-bar button {
+            flex: 1;
+            padding: 15px 0;
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--text-main);
+            border-right: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .bottom-bar button:last-child {
+            border-right: none;
+        }
+        .bottom-bar button:active {
+            background-color: #f0f0f0;
+        }
+        .btn-clear { color: #dc3545 !important; }
+        .btn-word { color: #28a745 !important; }
+        .btn-preview { color: var(--primary) !important; }
+        
+        /* 預覽視窗 */
+        #preview-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #preview-modal.active {
+            display: flex;
+        }
+        #preview-content {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            max-width: 90%;
+            max-height: 70%;
+            overflow: auto;
+        }
+        #preview-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .modal-actions button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-close { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="header">加藥量計算與紀錄系統</div>
+
+    <div class="container" id="capture-area">
+        <div class="card">
+            <h2>PAC 加藥計算</h2>
+            <div class="input-group">
+                <label>水量 (噸/日)</label>
+                <input type="number" id="pac-vol" placeholder="輸入水量" oninput="calcPAC('vol')">
+            </div>
+            <div class="input-group">
+                <label>濃度 (kg/噸)</label>
+                <input type="number" id="pac-conc" value="0.1" step="0.01" oninput="calcPAC('conc')">
+            </div>
+            <div class="input-group">
+                <label>用量 (公斤)</label>
+                <input type="number" id="pac-amt" placeholder="自動計算用量" oninput="calcPAC('amt')">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Polymer 加藥計算</h2>
+            <div class="input-group">
+                <label>水量 (噸/日)</label>
+                <input type="number" id="poly-vol" placeholder="輸入水量" oninput="calcPoly('vol')">
+            </div>
+            <div class="input-group">
+                <label>濃度 (kg/噸)</label>
+                <input type="number" id="poly-conc" value="0.001" step="0.0001" oninput="calcPoly('conc')" onblur="checkPolyConc()">
+            </div>
+            <div class="input-group">
+                <label>用量 (公斤)</label>
+                <input type="number" id="poly-amt" placeholder="自動計算用量" oninput="calcPoly('amt')">
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="btn-clear" onclick="clearAll()">一鍵清除</button>
+        <button class="btn-word" onclick="downloadWord()">下載 Word</button>
+        <button class="btn-preview" onclick="showPreview()">預覽 (截圖)</button>
+    </div>
+
+    <div id="preview-modal">
+        <div id="preview-content"></div>
+        <div class="modal-actions">
+            <button class="btn-close" onclick="closePreview()">關閉</button>
+        </div>
+    </div>
+
+    <script>
+        // PAC 計算邏輯 (用量 = 水量 * 濃度)
+        function calcPAC(changed) {
+            let vol = parseFloat(document.getElementById('pac-vol').value);
+            let conc = parseFloat(document.getElementById('pac-conc').value);
+            let amt = parseFloat(document.getElementById('pac-amt').value);
+
+            if (changed === 'vol' || changed === 'conc') {
+                if (!isNaN(vol) && !isNaN(conc)) {
+                    document.getElementById('pac-amt').value = (vol * conc).toFixed(2);
+                }
+            } else if (changed === 'amt') {
+                if (!isNaN(amt) && !isNaN(vol) && vol > 0) {
+                    document.getElementById('pac-conc').value = (amt / vol).toFixed(4);
+                }
+            }
+        }
+
+        // Polymer 計算邏輯
+        function calcPoly(changed) {
+            let vol = parseFloat(document.getElementById('poly-vol').value);
+            let conc = parseFloat(document.getElementById('poly-conc').value);
+            let amt = parseFloat(document.getElementById('poly-amt').value);
+
+            if (changed === 'vol' || changed === 'conc') {
+                if (!isNaN(vol) && !isNaN(conc)) {
+                    document.getElementById('poly-amt').value = (vol * conc).toFixed(4);
+                }
+            } else if (changed === 'amt') {
+                if (!isNaN(amt) && !isNaN(vol) && vol > 0) {
+                    let newConc = amt / vol;
+                    if (newConc > 0.0012) {
+                        alert("注意：換算之 Polymer 濃度超出上限 0.0012！");
+                        newConc = 0.0012;
+                        document.getElementById('poly-amt').value = (vol * newConc).toFixed(4);
+                    }
+                    document.getElementById('poly-conc').value = newConc.toFixed(5);
+                }
+            }
+        }
+
+        // Polymer 濃度上限驗證
+        function checkPolyConc() {
+            let conc = parseFloat(document.getElementById('poly-conc').value);
+            if (conc > 0.0012) {
+                alert("Polymer 濃度不可超過上限 0.0012！已自動修正。");
+                document.getElementById('poly-conc').value = 0.0012;
+                calcPoly('conc');
+            }
+        }
+
+        // 一鍵清除
+        function clearAll() {
+            if(confirm("確定要清除所有輸入的數值嗎？")) {
+                document.getElementById('pac-vol').value = '';
+                document.getElementById('pac-conc').value = '0.1';
+                document.getElementById('pac-amt').value = '';
+                
+                document.getElementById('poly-vol').value = '';
+                document.getElementById('poly-conc').value = '0.001';
+                document.getElementById('poly-amt').value = '';
+            }
+        }
+
+        // 下載 Word 檔
+        function downloadWord() {
+            const dateStr = new Date().toLocaleString('zh-TW');
+            const pacVol = document.getElementById('pac-vol').value || '0';
+            const pacConc = document.getElementById('pac-conc').value || '0';
+            const pacAmt = document.getElementById('pac-amt').value || '0';
+            
+            const polyVol = document.getElementById('poly-vol').value || '0';
+            const polyConc = document.getElementById('poly-conc').value || '0';
+            const polyAmt = document.getElementById('poly-amt').value || '0';
+
+            const htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>加藥量紀錄表</title></head>
+                <body>
+                    <h2>污水處理加藥量紀錄表</h2>
+                    <p>記錄時間：${dateStr}</p>
+                    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                        <tr>
+                            <th style="background-color: #f2f2f2;">藥劑種類</th>
+                            <th style="background-color: #f2f2f2;">水量 (噸)</th>
+                            <th style="background-color: #f2f2f2;">濃度 (kg/噸)</th>
+                            <th style="background-color: #f2f2f2;">用量 (公斤)</th>
+                        </tr>
+                        <tr>
+                            <td align="center">PAC</td>
+                            <td align="right">${pacVol}</td>
+                            <td align="right">${pacConc}</td>
+                            <td align="right">${pacAmt}</td>
+                        </tr>
+                        <tr>
+                            <td align="center">Polymer</td>
+                            <td align="right">${polyVol}</td>
+                            <td align="right">${polyConc}</td>
+                            <td align="right">${polyAmt}</td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff', htmlContent], {
+                type: 'application/msword'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `加藥量紀錄_${new Date().getTime()}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // 預覽(截圖)
+        function showPreview() {
+            const captureArea = document.getElementById('capture-area');
+            const modal = document.getElementById('preview-modal');
+            const previewContent = document.getElementById('preview-content');
+            
+            previewContent.innerHTML = '<p style="color:white;">正在產生預覽圖...</p>';
+            modal.classList.add('active');
+
+            // 確保樣式轉換正確，稍微延遲以確保畫面更新
+            setTimeout(() => {
+                html2canvas(captureArea, {
+                    scale: 2, // 提高解析度
+                    backgroundColor: "#f4f7f6"
+                }).then(canvas => {
+                    const img = document.createElement('img');
+                    img.src = canvas.toDataURL('image/png');
+                    previewContent.innerHTML = '';
+                    previewContent.appendChild(img);
+                    
+                    // 新增儲存圖片按鈕
+                    const saveBtn = document.createElement('button');
+                    saveBtn.textContent = '長按圖片儲存，或點此下載';
+                    saveBtn.style.marginTop = '10px';
+                    saveBtn.style.width = '100%';
+                    saveBtn.style.padding = '10px';
+                    saveBtn.style.background = '#28a745';
+                    saveBtn.style.color = 'white';
+                    saveBtn.style.border = 'none';
+                    saveBtn.style.borderRadius = '4px';
+                    saveBtn.onclick = () => {
+                        const link = document.createElement('a');
+                        link.download = `加藥計算截圖_${new Date().getTime()}.png`;
+                        link.href = img.src;
+                        link.click();
+                    };
+                    previewContent.appendChild(saveBtn);
+                });
+            }, 300);
+        }
+
+        function closePreview() {
+            document.getElementById('preview-modal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
