@@ -190,7 +190,7 @@
             const AOR = (Q * deltaBOD * 1.1) / 1000;
             const SOR = AOR / OTE;
             const airWeight = SOR / 0.232; // 空氣含氧重量比
-            const airVolDaily = airWeight / 1.5; // 每日標準空氣體積 (m3/d)
+            const airVolDaily = airWeight / 1.2; // 每日標準空氣體積 (m3/d)
             const airVolHr = airVolDaily / 24; 
             const finalAirVol = airVolHr * SF;
 
@@ -202,7 +202,7 @@
                 2. 實際需氧量 (AOR) = (${Q} × ${deltaBOD} × 1.1) / 1000 = ${AOR.toFixed(2)} kg-O2/d
                 3. 標準需氧量 (SOR) = ${AOR.toFixed(2)} / ${OTE} (OTE) = ${SOR.toFixed(2)} kg-O2/d
                 4. 所需空氣重量 = ${SOR.toFixed(2)} / 0.232 = ${airWeight.toFixed(2)} kg-Air/d
-                5. 理論小時風量 = ${airWeight.toFixed(2)} / (1.5 × 24) = ${airVolHr.toFixed(2)} Nm³/hr
+                5. 理論小時風量 = ${airWeight.toFixed(2)} / (1.2 × 24) = ${airVolHr.toFixed(2)} Nm³/hr
                 6. 加入安全係數 (${SF}) 後設計風量 = ${airVolHr.toFixed(2)} × ${SF} = ${(finalAirVol).toFixed(2)} Nm³/hr
                 
                 ■ 推薦鼓風機規格：
@@ -216,7 +216,7 @@
             
             // 反推邏輯
             const airVolDaily = blowerAir * 24; // 每日總風量 Nm3
-            const airWeight = airVolDaily * 1.5; // 每日空氣重 kg
+            const airWeight = airVolDaily * 1.2; // 每日空氣重 kg
             const SOR = airWeight * 0.232; // 供氧能力
             const AOR = SOR * OTE; // 實際溶入水中氧量
             
@@ -228,7 +228,7 @@
 
             processText = `【反向推算結果】
                 1. 參數確認：供風量 = ${blowerAir} Nm³/hr, 水量 = ${Q} CMD
-                2. 每日供氣總重量 = ${blowerAir} × 24 × 1.5 = ${airWeight.toFixed(2)} kg-Air/d
+                2. 每日供氣總重量 = ${blowerAir} × 24 × 1.2 = ${airWeight.toFixed(2)} kg-Air/d
                 3. 系統標準供氧能力 (SOR) = ${airWeight.toFixed(2)} × 0.232 = ${SOR.toFixed(2)} kg-O2/d
                 4. 實際可利用氧量 (AOR) = ${SOR.toFixed(2)} × ${OTE} (OTE) = ${AOR.toFixed(2)} kg-O2/d
                 5. 系統最大可代謝 BOD 總量 = ${AOR.toFixed(2)} / 1.1 = ${totalBODLoad.toFixed(2)} kg-BOD/d
