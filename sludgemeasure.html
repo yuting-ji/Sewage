@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>沉澱池底泥量測記錄系統</title>
-    <!-- Tailwind CSS CDN for modern mobile UI -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- docx.js for generating .docx in browser -->
     <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
@@ -30,21 +30,22 @@
         .preview-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             font-family: "標楷體", "DFKai-SB", "BiauKai", serif;
             font-size: 12pt;
         }
         .preview-table th, .preview-table td {
             border: 1px solid black;
-            padding: 4px 6px;
+            padding: 5px 4px;
             text-align: center;
             line-height: 1.2;
+            white-space: nowrap;
         }
         .preview-title {
             font-size: 18pt;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             letter-spacing: 2px;
         }
     </style>
@@ -339,26 +340,27 @@
 
             entries.forEach(entry => {
                 const headerText = `${entry.stage}${entry.unit} 第 ${entry.pool} 池`;
-                const colCount = entry.positions.length;
-                const colWidthPct = (100 / colCount).toFixed(1);
+                const totalCols = entry.positions.length + 1; // +1 for left column
 
                 html += `
                     <table class="preview-table">
                         <thead>
                             <tr>
-                                <th colspan="${colCount}" style="background-color: #f8fafc; font-weight: bold; text-align: left; padding: 6px 10px;">
+                                <th colspan="${totalCols}" style="background-color: #f8fafc; font-weight: bold; text-align: left; padding: 6px 10px;">
                                     ${headerText}
                                 </th>
                             </tr>
                             <tr>
-                                ${entry.positions.map(p => `<th style="width: ${colWidthPct}%; background-color: #f1f5f9;">${p.replace('/', '/<br>')}</th>`).join('')}
+                                <th style="width: 16%; background-color: #f1f5f9; font-weight: bold;">位置</th>
+                                ${entry.positions.map(p => `<th style="width: 21%; background-color: #f1f5f9; white-space: nowrap;">${p}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
+                                <td style="background-color: #f8fafc; font-weight: bold;">厚度cm</td>
                                 ${entry.positions.map(p => `
                                     <td style="height: 36px; vertical-align: middle; font-weight: bold;">
-                                        ${entry.values[p] ? entry.values[p] + ' cm' : '&nbsp;'}
+                                        ${entry.values[p] ? entry.values[p] : '&nbsp;'}
                                     </td>
                                 `).join('')}
                             </tr>
@@ -414,7 +416,7 @@
             docChildren.push(
                 new Paragraph({
                     alignment: AlignmentType.CENTER,
-                    spacing: { before: 0, after: 200, line: 240 }, // tight spacing
+                    spacing: { before: 0, after: 200, line: 240 },
                     children: [
                         new TextRun({
                             text: "沉澱池底泥量測",
@@ -429,10 +431,13 @@
             // Generate Tables for each entry
             entries.forEach(entry => {
                 const headerText = `${entry.stage}${entry.unit} 第 ${entry.pool} 池`;
-                const colCount = entry.positions.length;
-                const cellWidthPercent = 100 / colCount;
+                const totalCols = entry.positions.length + 1; // 1 (left header) + 4 positions = 5 columns
 
-                // Row 1: Title Header Row (spanning all columns)
+                // Width distribution: 16% for left header, 21% each for remaining 4 columns
+                const leftColWidthPercent = 16;
+                const posColWidthPercent = 21;
+
+                // Row 1: Pool Title Header Row (spanning all 5 columns)
                 const row1 = new TableRow({
                     children: [
                         new TableCell({
@@ -450,7 +455,7 @@
                                     ],
                                 }),
                             ],
-                            columnSpan: colCount,
+                            columnSpan: totalCols,
                             borders: standardBorder,
                             shading: { fill: "F2F2F2" },
                             verticalAlign: VerticalAlign.CENTER,
@@ -458,9 +463,9 @@
                     ],
                 });
 
-                // Row 2: Positions Column Headers
-                const row2Cells = entry.positions.map(pos => {
-                    return new TableCell({
+                // Row 2: "位置" at left + Positions
+                const row2Cells = [
+                    new TableCell({
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.CENTER,
@@ -468,7 +473,7 @@
                                 indent: { left: 0 },
                                 children: [
                                     new TextRun({
-                                        text: pos,
+                                        text: "位置",
                                         font: FONT_FAMILY,
                                         size: 24, // 12pt
                                         bold: true,
@@ -476,37 +481,83 @@
                                 ],
                             }),
                         ],
-                        width: { size: cellWidthPercent, type: WidthType.PERCENTAGE },
+                        width: { size: leftColWidthPercent, type: WidthType.PERCENTAGE },
                         borders: standardBorder,
                         shading: { fill: "F9F9F9" },
                         verticalAlign: VerticalAlign.CENTER,
-                    });
-                });
+                    }),
+                    ...entry.positions.map(pos => {
+                        return new TableCell({
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { before: 40, after: 40 },
+                                    indent: { left: 0 },
+                                    children: [
+                                        new TextRun({
+                                            text: pos,
+                                            font: FONT_FAMILY,
+                                            size: 24, // 12pt
+                                            bold: true,
+                                        }),
+                                    ],
+                                }),
+                            ],
+                            width: { size: posColWidthPercent, type: WidthType.PERCENTAGE },
+                            borders: standardBorder,
+                            shading: { fill: "F9F9F9" },
+                            verticalAlign: VerticalAlign.CENTER,
+                        });
+                    })
+                ];
                 const row2 = new TableRow({ children: row2Cells });
 
-                // Row 3: Thickness Data Row
-                const row3Cells = entry.positions.map(pos => {
-                    const val = entry.values[pos] ? `${entry.values[pos]}` : "";
-                    return new TableCell({
+                // Row 3: "厚度cm" at left + Thickness Data values
+                const row3Cells = [
+                    new TableCell({
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.CENTER,
-                                spacing: { before: 80, after: 80 },
+                                spacing: { before: 60, after: 60 },
                                 indent: { left: 0 },
                                 children: [
                                     new TextRun({
-                                        text: val ? `${val} cm` : "",
+                                        text: "厚度cm",
                                         font: FONT_FAMILY,
                                         size: 24, // 12pt
+                                        bold: true,
                                     }),
                                 ],
                             }),
                         ],
-                        width: { size: cellWidthPercent, type: WidthType.PERCENTAGE },
+                        width: { size: leftColWidthPercent, type: WidthType.PERCENTAGE },
                         borders: standardBorder,
+                        shading: { fill: "F9F9F9" },
                         verticalAlign: VerticalAlign.CENTER,
-                    });
-                });
+                    }),
+                    ...entry.positions.map(pos => {
+                        const val = entry.values[pos] ? `${entry.values[pos]}` : "";
+                        return new TableCell({
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { before: 60, after: 60 },
+                                    indent: { left: 0 },
+                                    children: [
+                                        new TextRun({
+                                            text: val,
+                                            font: FONT_FAMILY,
+                                            size: 24, // 12pt
+                                        }),
+                                    ],
+                                }),
+                            ],
+                            width: { size: posColWidthPercent, type: WidthType.PERCENTAGE },
+                            borders: standardBorder,
+                            verticalAlign: VerticalAlign.CENTER,
+                        });
+                    })
+                ];
                 const row3 = new TableRow({ children: row3Cells });
 
                 // Add Table to Document
@@ -514,20 +565,20 @@
                     new Table({
                         rows: [row1, row2, row3],
                         width: { size: 100, type: WidthType.PERCENTAGE },
-                        margins: { top: 60, bottom: 60, left: 100, right: 100 },
+                        margins: { top: 40, bottom: 40, left: 60, right: 60 },
                     })
                 );
 
-                // Space after each table (empty paragraph with 0 spacing)
+                // Space after each table
                 docChildren.push(
                     new Paragraph({
-                        spacing: { before: 0, after: 120 },
+                        spacing: { before: 0, after: 140 },
                         children: [],
                     })
                 );
             });
 
-            // 1 cm = 567 dxa (approx)
+            // 1 cm = 567 dxa
             const margin1cm = 567;
 
             const doc = new Document({
