@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>廢水處理加藥計算與單位換算系統</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 圖示 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* 隱藏 Chrome, Safari, Edge, Opera 的 number input 箭頭 */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .tab-active {
+      border-bottom-color: #2563eb !important;
+      color: #1d4ed8 !important;
+      font-weight: 700 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between py-4 px-2 sm:py-6 sm:px-6 font-sans">
+
+  <div class="max-w-5xl w-full mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+    <!-- 頂部標題列 -->
+    <header class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white p-5 sm:p-6 shadow-md">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center space-x-2 mb-1">
+            <span class="p-2 bg-blue-500/20 rounded-lg text-blue-300 border border-blue-400/30">
+              <i class="fa-solid fa-flask-vial text-xl"></i>
+            </span>
+            <h1 class="text-xl sm:text-2xl font-black tracking-wide">廢水加藥計算與單位換算整合系統</h1>
+          </div>
+          <p class="text-slate-300 text-xs sm:text-sm">符合水污染防治水措許可規範 ‧ PAC/Polymer 正反算 ‧ 多功能比重換算</p>
+        </div>
+        <div class="flex items-center space-x-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300">
+          <i class="fa-solid fa-book-bookmark text-amber-400"></i>
+          <span>參考水措：快混池 T01-10 / 慢混池 T01-11</span>
+        </div>
+      </div>
+
+      <!-- 分頁導航切換鈕 -->
+      <nav class="flex space-x-3 mt-6 border-b border-slate-700 text-sm">
+        <button id="nav-tab-dosing" onclick="switchMainTab('dosing')" class="pb-2.5 px-3 border-b-2 border-blue-400 text-white font-bold flex items-center gap-2 transition hover:text-blue-200">
+          <i class="fa-solid fa-calculator"></i> 廢水加藥量計算與反算
+        </button>
+        <button id="nav-tab-converter" onclick="switchMainTab('converter')" class="pb-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2 transition">
+          <i class="fa-solid fa-scale-balanced"></i> 重量與容量單位換算器
+        </button>
+      </nav>
+    </header>
+
+    <!-- ==================== TAB 1: 廢水加藥計算與水措反算 ==================== -->
+    <div id="tab-dosing" class="p-4 sm:p-7 space-y-6">
+      
+      <!-- 模式切換與基本廢水量設定 -->
+      <section class="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 border-2 border-blue-200/80 rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-blue-200">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">1</span>
+              運算模式與廢水水量設定
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">選擇正向計算加藥量或由現場加藥數據反算廢水量/加藥濃度</p>
+          </div>
+
+          <!-- 正反算切換選單 -->
+          <div class="flex items-center space-x-2">
+            <label for="calc-mode-select" class="text-xs font-bold text-slate-700 whitespace-nowrap">計算模式：</label>
+            <select id="calc-mode-select" onchange="toggleCalcMode()" class="bg-white border-2 border-blue-500 font-bold text-blue-900 rounded-lg px-3 py-1.5 text-xs sm:text-sm shadow-sm focus:ring-2 focus:ring-blue-400 cursor-pointer">
+              <option value="forward">正算模式：已知廢水量 ➔ 計算 PAC 與 Polymer 加藥量</option>
+              <option value="reverse">反算模式：已知加藥量 ➔ 反推廢水量與加藥濃度</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 水量輸入與單位下拉選單 -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4 items-center">
+          <div class="md:col-span-4">
+            <label for="input-flow-val" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+              <i class="fa-solid fa-water text-blue-600"></i>
+              <span id="label-flow-title">廢水處理量 (Q)：</span>
+            </label>
+            <div class="relative">
+              <input 
+                id="input-flow-val" 
+                type="number" 
+                inputmode="decimal" 
+                step="any" 
+                value="1000" 
+                placeholder="例如: 1000"
+                class="w-full text-xl sm:text-2xl font-bold bg-white text-slate-800 border-2 border-slate-300 rounded-xl p-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+              />
+            </div>
+          </div>
+
+          <!-- 水量單位下拉選單 -->
+          <div class="md:col-span-3">
+            <label for="select-flow-unit" class="block text-xs font-bold text-slate-700 mb-1">廢水量單位：</label>
+            <select id="select-flow-unit" class="w-full bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 cursor-pointer shadow-sm">
+              <option value="m3_d" selected>m³/日 (立方公尺/天)</option>
+              <option value="m3_h">m³/小時 (立方公尺/時)</option>
+              <option value="L_min">公升/分鐘 (L/min)</option>
+              <option value="L_d">公升/日 (L/d)</option>
+              <option value="CMD">CMD (m³/d 常用簡稱)</option>
+            </select>
+          </div>
+
+          <!-- 標準化基準顯示 (m³/d 及 m³/h) -->
+          <div class="md:col-span-5 bg-white/90 border border-blue-200 rounded-xl p-3 text-xs space-y-1">
+            <div class="text-slate-500 font-medium">折合標準流量基準：</div>
+            <div class="flex items-center justify-between text-slate-700 font-mono">
+              <span>日總流量：<strong id="display-norm-flow-day" class="text-blue-700 text-sm">1,000.00</strong> m³/日</span>
+              <span>時平均：<strong id="display-norm-flow-hour" class="text-indigo-700 text-sm">41.67</strong> m³/h</span>
+            </div>
+            <div class="text-[11px] text-slate-400">水措最大設計參考水量：24,795 m³/d (~1,033 m³/h)</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 藥劑設定主區塊：PAC 與 Polymer 雙欄排版 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- ==================== PAC 聚氯化鋁 (快混池 T01-10) ==================== -->
+        <div class="bg-white rounded-2xl border-2 border-emerald-200/90 shadow-md p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full -z-0"></div>
+
+          <div class="relative z-10 space-y-4">
+            <!-- 標題與法規指示標籤 -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center space-x-2">
+                <span class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-sm">
+                  PAC
+                </span>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-base leading-tight">多元氯化鋁 (PAC) 投藥</h3>
+                  <span class="text-[11px] text-slate-400">快混池 T01-10 ‧ 代碼 1214</span>
+                </div>
+              </div>
+              <span id="badge-pac-status" class="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                符合水措範圍
+              </span>
+            </div>
+
+            <!-- PAC 藥劑規格下拉設定 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="select-pac-purity" class="block text-xs font-semibold text-slate-600 mb-1">
+                  PAC 原液濃度：
+                </label>
+                <select id="select-pac-purity" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-semibold rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                  <option value="0.08">8 % (水措許可下限)</option>
+                  <option value="0.09">9 % (水措操作量測標準)</option>
+                  <option value="0.10" selected>10 % (標準市售原液)</option>
+                  <option value="0.12">12 % (水措許可上限)</option>
+                  <option value="0.15">15 % (高純度液體)</option>
+                  <option value="custom">自訂純度 %</option>
+                </select>
+                <input id="input-pac-custom-purity" type="number" step="0.1" placeholder="輸入自訂純度 %" class="hidden mt-1 w-full bg-white border border-emerald-400 rounded p-1 text-xs text-center font-bold" value="10">
+              </div>
+
+              <div>
+                <label for="input-pac-sg" class="block text-xs font-semibold text-slate-600 mb-1">
+                  PAC 原液比重 (SG)：
+                </label>
+                <div class="flex items-center">
+                  <input id="input-pac-sg" type="number" inputmode="decimal" step="0.01" value="1.20" class="w-full bg-slate-50 border border-slate-300 font-bold text-slate-800 rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">常用規格：約 1.18 ~ 1.25</div>
+              </div>
+            </div>
+
+            <!-- PAC 稀釋選項 -->
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <i class="fa-solid fa-faucet-detergent text-emerald-600"></i> 原液二次稀釋設定：
+                </span>
+                <select id="select-pac-dilute" onchange="togglePacDilution()" class="bg-white border border-slate-300 rounded px-2 py-0.5 text-xs text-slate-700 cursor-pointer">
+                  <option value="raw" selected>不稀釋 (直接投加原液)</option>
+                  <option value="diluted">現場配槽稀釋投加</option>
+                </select>
+              </div>
+
+              <!-- 稀釋配比面板 -->
+              <div id="panel-pac-dilution" class="hidden mt-2 pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span class="text-[11px] text-slate-500">PAC原液體積比例：</span>
+                  <div class="flex items-center mt-0.5">
+                    <input id="pac-ratio-part" type="number" value="1" min="1" class="w-16 bg-white border border-slate-300 rounded p-1 text-center font-bold">
+                    <span class="ml-1 text-slate-500">份</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="text-[11px] text-slate-500">加自來水比例：</span>
+                  <div class="flex items-center mt-0.5">
+                    <input id="pac-water-part" type="number" value="4" min="0" class="w-16 bg-white border border-slate-300 rounded p-1 text-center font-bold">
+                    <span class="ml-1 text-slate-500">份水</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PAC 正算加藥目標 或 反算加藥量輸入 -->
+            <div class="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200">
+              <label for="input-pac-dose-val" class="block text-xs font-bold text-emerald-900 mb-1 flex items-center justify-between">
+                <span id="label-pac-dose-title">目標加藥劑量：</span>
+                <span class="text-[11px] font-normal text-emerald-700">水措基準：50 mg/L (0.05 kg/m³)</span>
+              </label>
+              <div class="flex items-center space-x-2">
+                <input 
+                  id="input-pac-dose-val" 
+                  type="number" 
+                  inputmode="decimal" 
+                  step="any" 
+                  value="50" 
+                  class="w-1/2 bg-white text-xl font-black text-emerald-800 border border-emerald-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400"
+                />
+                <!-- 加藥單位下拉選單 -->
+                <select id="select-pac-dose-unit" class="w-1/2 bg-white border border-emerald-300 text-xs sm:text-sm font-bold text-emerald-800 rounded-lg p-2.5 cursor-pointer shadow-sm">
+                  <option value="mg_L" selected>mg/L (ppm)</option>
+                  <option value="kg_m3">kg / m³ (公斤/噸廢水)</option>
+                  <option value="g_m3">g / m³ (公克/噸水)</option>
+                  <option value="mL_L">mL / L (藥水比)</option>
+                  <!-- 反算專用單位選項 (動態顯隱或直接通用) -->
+                  <option value="L_h">L / h (加藥機小時流量)</option>
+                  <option value="mL_min">mL / min (加藥計量流量)</option>
+                  <option value="kg_d">kg / 日 (每日藥品總重)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- PAC 計算結果卡片 -->
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <span class="text-slate-600">每日商品藥液重量：</span>
+                <strong id="res-pac-kg-day" class="text-sm font-mono text-emerald-700 font-bold">-- kg/日</strong>
+              </div>
+              <div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <span class="text-slate-600">每日投加體積量：</span>
+                <strong id="res-pac-l-day" class="text-sm font-mono text-slate-800 font-bold">-- L/日</strong>
+              </div>
+              <!-- 加藥機建議流量：L/h 與 mL/min 上下獨立排列 -->
+              <div class="bg-emerald-50/90 p-3 rounded-xl border-2 border-emerald-300 space-y-2">
+                <div class="flex justify-between items-center pb-1.5 border-b border-emerald-200">
+                  <span class="font-bold text-emerald-900 flex items-center gap-1">
+                    <i class="fa-solid fa-gauge text-emerald-600"></i> 加藥機小時流量 (L/h)：
+                  </span>
+                  <strong id="res-pac-pump-flow" class="text-lg font-mono text-emerald-800 font-black">-- L/h</strong>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-emerald-900 flex items-center gap-1">
+                    <i class="fa-solid fa-stopwatch text-emerald-600"></i> 量筒校正流量 (mL/min)：
+                  </span>
+                  <strong id="res-pac-pump-flow-min" class="text-lg font-mono text-emerald-800 font-black">-- mL/min</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 水措標準對比欄 -->
+          <div class="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500">
+            <i class="fa-solid fa-shield-halved text-emerald-600"></i> 水措規範：0 ~ 0.1 kg/m³ (每日上限 1,240 kg)
+          </div>
+        </div>
+
+        <!-- ==================== Polymer 高分子凝集劑 (慢混池 T01-11) ==================== -->
+        <div class="bg-white rounded-2xl border-2 border-indigo-200/90 shadow-md p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-50 rounded-full -z-0"></div>
+
+          <div class="relative z-10 space-y-4">
+            <!-- 標題與法規指示標籤 -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center space-x-2">
+                <span class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-sm">
+                  Poly
+                </span>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-base leading-tight">高分子凝集劑 (Polymer) 投藥</h3>
+                  <span class="text-[11px] text-slate-400">慢混池 T01-11 ‧ 代碼 1217</span>
+                </div>
+              </div>
+              <span id="badge-poly-status" class="text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                符合水措範圍
+              </span>
+            </div>
+
+            <!-- 自動泡藥機稀釋配比下拉式選單 (使用者指定重點功能) -->
+            <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-indigo-900 flex items-center gap-1">
+                  <i class="fa-solid fa-blender text-indigo-600"></i> 自動泡藥機稀釋泡製設定：
+                </span>
+                <span id="display-poly-conc-percent" class="text-xs font-bold text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">
+                  熟化濃度: 0.100 % (1,000 ppm)
+                </span>
+              </div>
+
+              <!-- 藥粉量 + 下拉選單 -->
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <span class="text-[11px] font-semibold text-slate-600 block mb-0.5">投加乾粉量：</span>
+                  <div class="flex space-x-1">
+                    <input id="input-poly-powder-val" type="number" step="any" value="1" class="w-1/2 bg-white border border-slate-300 rounded-lg p-1.5 text-center font-bold text-xs">
+                    <select id="select-poly-powder-unit" class="w-1/2 bg-white border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">
+                      <option value="kg" selected>公斤 (kg)</option>
+                      <option value="g">公克 (g)</option>
+                      <option value="bag_25">包 (25kg/包)</option>
+                      <option value="lb">磅 (lb)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- 自來水量 + 下拉選單 -->
+                <div>
+                  <span class="text-[11px] font-semibold text-slate-600 block mb-0.5">泡藥自來水量：</span>
+                  <div class="flex space-x-1">
+                    <input id="input-poly-water-val" type="number" step="any" value="1" class="w-1/2 bg-white border border-slate-300 rounded-lg p-1.5 text-center font-bold text-xs">
+                    <select id="select-poly-water-unit" class="w-1/2 bg-white border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">
+                      <option value="ton" selected>公噸/m³</option>
+                      <option value="L">公升 (L)</option>
+                      <option value="drum_200">桶 (200L)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 乾粉原始純度選單 -->
+              <div class="flex items-center justify-between pt-1 border-t border-indigo-100 text-[11px]">
+                <span class="text-slate-600">Polymer 乾粉純度：</span>
+                <select id="select-poly-purity" class="bg-white border border-slate-300 rounded px-2 py-0.5 text-slate-700 cursor-pointer font-medium">
+                  <option value="0.90">90 % (許可下限)</option>
+                  <option value="0.92">92 %</option>
+                  <option value="0.95" selected>95 % (許可標準)</option>
+                  <option value="0.98">98 % (許可上限)</option>
+                  <option value="1.00">100 % (純固體計算)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Polymer 正算加藥目標 或 反算加藥量輸入 -->
+            <div class="bg-indigo-50/40 p-3.5 rounded-xl border border-indigo-200">
+              <label for="input-poly-dose-val" class="block text-xs font-bold text-indigo-900 mb-1 flex items-center justify-between">
+                <span id="label-poly-dose-title">目標加藥劑量 (以純藥計)：</span>
+                <span class="text-[11px] font-normal text-indigo-700">水措基準：0.5 mg/L</span>
+              </label>
+              <div class="flex items-center space-x-2">
+                <input 
+                  id="input-poly-dose-val" 
+                  type="number" 
+                  inputmode="decimal" 
+                  step="any" 
+                  value="0.5" 
+                  class="w-1/2 bg-white text-xl font-black text-indigo-800 border border-indigo-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-400"
+                />
+                <!-- 加藥單位下拉選單 -->
+                <select id="select-poly-dose-unit" class="w-1/2 bg-white border border-indigo-300 text-xs sm:text-sm font-bold text-indigo-800 rounded-lg p-2.5 cursor-pointer shadow-sm">
+                  <option value="mg_L" selected>mg/L (ppm)</option>
+                  <option value="kg_m3">kg / m³ (公斤/噸水)</option>
+                  <option value="g_m3">g / m³</option>
+                  <!-- 反算專用單位選項 -->
+                  <option value="L_h">L / h (稀釋液打擊流量)</option>
+                  <option value="mL_min">mL / min (打擊流量)</option>
+                  <option value="kg_d">kg / 日 (乾粉耗量)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Polymer 計算結果卡片 -->
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <span class="text-slate-600">每日消耗乾粉重量：</span>
+                <strong id="res-poly-kg-day" class="text-sm font-mono text-indigo-700 font-bold">-- kg/日</strong>
+              </div>
+              <div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <span class="text-slate-600">每日泡製稀釋液需求：</span>
+                <strong id="res-poly-diluted-vol-day" class="text-sm font-mono text-slate-800 font-bold">-- L/日</strong>
+              </div>
+              <!-- 加藥機建議流量：L/h 與 mL/min 上下獨立排列 -->
+              <div class="bg-indigo-50/90 p-3 rounded-xl border-2 border-indigo-300 space-y-2">
+                <div class="flex justify-between items-center pb-1.5 border-b border-indigo-200">
+                  <span class="font-bold text-indigo-900 flex items-center gap-1">
+                    <i class="fa-solid fa-gauge text-indigo-600"></i> 加藥機打擊流量 (L/h)：
+                  </span>
+                  <strong id="res-poly-pump-flow" class="text-lg font-mono text-indigo-800 font-black">-- L/h</strong>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-indigo-900 flex items-center gap-1">
+                    <i class="fa-solid fa-stopwatch text-indigo-600"></i> 量筒校正流量 (mL/min)：
+                  </span>
+                  <strong id="res-poly-pump-flow-min" class="text-lg font-mono text-indigo-800 font-black">-- mL/min</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 水措標準對比欄 -->
+          <div class="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500">
+            <i class="fa-solid fa-shield-halved text-indigo-600"></i> 水措規範：0 ~ 0.0012 kg/m³ (每日上限 12.4 kg)
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 計算結果文字報告與複製 -->
+      <section class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 text-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2 font-bold text-slate-700">
+            <i class="fa-solid fa-clipboard-list text-blue-600"></i>
+            <span>水措加藥操作與法規核算報告摘要</span>
+          </div>
+          <button 
+            type="button" 
+            onclick="copyDosingSummaryReport()" 
+            class="text-xs bg-white hover:bg-blue-50 text-blue-700 font-bold border border-blue-300 px-3 py-1.5 rounded-lg shadow-sm transition active:scale-95 flex items-center gap-1.5"
+          >
+            <i class="fa-regular fa-copy"></i> 複製報告文字
+          </button>
+        </div>
+
+        <div id="dosing-text-report" class="bg-white p-3.5 rounded-xl border border-slate-200 font-mono text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed shadow-inner">
+          正在運算加藥數據...
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ==================== TAB 2: 原有重量與容量通用換算器 ==================== -->
+    <div id="tab-converter" class="hidden p-4 sm:p-7 space-y-6">
+      
+      <!-- 比重 (Specific Gravity) 區塊 -->
+      <section class="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center space-x-2">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-sm">
+              <i class="fa-solid fa-vial"></i>
+            </span>
+            <div>
+              <label for="input-sg" class="font-bold text-slate-700 text-sm sm:text-base flex items-center gap-1">
+                比重 (Specific Gravity / 密度)
+                <span id="sg-status-badge" class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-normal">跨維度計算生效中</span>
+              </label>
+              <p class="text-xs text-slate-500">水之比重為 1.0 (1 g/cm³ = 1 kg/L = 1 t/m³)</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-semibold text-slate-600">SG =</span>
+            <input 
+              id="input-sg" 
+              type="number" 
+              inputmode="decimal" 
+              step="any" 
+              value="1.0" 
+              min="0.0000001" 
+              class="w-32 sm:w-36 text-center font-bold text-lg text-blue-800 bg-white border-2 border-blue-400 rounded-lg py-1.5 px-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-inner"
+              placeholder="1.0"
+            />
+          </div>
+        </div>
+
+        <!-- 比重快速選取標籤 -->
+        <div class="mt-3 pt-3 border-t border-slate-200">
+          <div class="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1">
+            <i class="fa-solid fa-bolt text-amber-500"></i> 常用液體比重快速套用：
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="setPresetSG(1.00, '水')" class="text-xs px-2.5 py-1 rounded bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 font-medium transition">水 (1.00)</button>
+            <button type="button" onclick="setPresetSG(1.20, 'PAC 10% 聚合氯化鋁')" class="text-xs px-2.5 py-1 rounded bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 font-medium transition">PAC 10% (1.20)</button>
+            <button type="button" onclick="setPresetSG(0.79, '乙醇/酒精')" class="text-xs px-2.5 py-1 rounded bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 font-medium transition">乙醇 (0.79)</button>
+            <button type="button" onclick="setPresetSG(1.18, '鹽酸 35%')" class="text-xs px-2.5 py-1 rounded bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 font-medium transition">鹽酸 35% (1.18)</button>
+            <button type="button" onclick="setPresetSG(1.21, '次氯酸鈉 12%')" class="text-xs px-2.5 py-1 rounded bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 font-medium transition">次氯酸鈉 12% (1.21)</button>
+            <button type="button" onclick="setPresetSG(1.84, '濃硫酸 98%')" class="text-xs px-2.5 py-1 rounded bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 font-medium transition">濃硫酸 98% (1.84)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 換算主體區：左側 vs 右側 -->
+      <div class="grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
+        <!-- 左端單位卡片 -->
+        <div class="md:col-span-5 bg-blue-50/50 rounded-xl p-4 sm:p-5 border-2 border-blue-200/80 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold tracking-wider text-blue-700 uppercase flex items-center gap-1.5">
+              <i class="fa-regular fa-circle-dot"></i> 輸入端 (側 A)
+            </span>
+            <select id="type-left" class="text-sm font-semibold bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-blue-800 shadow-sm focus:ring-2 focus:ring-blue-400 cursor-pointer">
+              <option value="weight">重量 (Weight)</option>
+              <option value="volume">容量 (Volume)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <input 
+              id="val-left" 
+              type="number" 
+              inputmode="decimal" 
+              step="any" 
+              placeholder="請輸入數值" 
+              class="w-full text-2xl font-bold bg-white text-slate-800 border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 shadow-inner"
+            />
+          </div>
+
+          <div>
+            <label for="unit-left" class="text-xs text-slate-500 block mb-1 font-medium">選擇單位：</label>
+            <select id="unit-left" class="w-full text-sm font-medium bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            </select>
+          </div>
+        </div>
+
+        <!-- 中間互換按鈕 -->
+        <div class="md:col-span-1 flex justify-center py-1">
+          <button 
+            type="button" 
+            id="btn-swap" 
+            title="對調兩側類型與單位"
+            class="group w-12 h-12 rounded-full bg-white hover:bg-blue-600 text-blue-600 hover:text-white border-2 border-blue-400 shadow-md flex items-center justify-center transition-all transform hover:rotate-180 active:scale-95"
+          >
+            <i class="fa-solid fa-right-left text-lg"></i>
+          </button>
+        </div>
+
+        <!-- 右端單位卡片 -->
+        <div class="md:col-span-5 bg-indigo-50/50 rounded-xl p-4 sm:p-5 border-2 border-indigo-200/80 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold tracking-wider text-indigo-700 uppercase flex items-center gap-1.5">
+              <i class="fa-regular fa-circle-dot"></i> 結果端 (側 B)
+            </span>
+            <select id="type-right" class="text-sm font-semibold bg-white border border-indigo-300 rounded-lg px-2.5 py-1 text-indigo-800 shadow-sm focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+              <option value="weight">重量 (Weight)</option>
+              <option value="volume">容量 (Volume)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <input 
+              id="val-right" 
+              type="number" 
+              inputmode="decimal" 
+              step="any" 
+              placeholder="請輸入數值" 
+              class="w-full text-2xl font-bold bg-white text-slate-800 border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 shadow-inner"
+            />
+          </div>
+
+          <div>
+            <label for="unit-right" class="text-xs text-slate-500 block mb-1 font-medium">選擇單位：</label>
+            <select id="unit-right" class="w-full text-sm font-medium bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 換算公式與即時文字解析 -->
+      <section class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-600">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-bold text-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-calculator text-blue-600"></i> 換算結果速查：
+          </span>
+          <button type="button" id="btn-clear-converter" class="text-xs text-rose-500 hover:text-rose-700 hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-trash-can"></i> 清除清空
+          </button>
+        </div>
+        <div id="formula-detail" class="font-mono text-xs sm:text-sm text-slate-700 mt-2 bg-white p-2.5 rounded-lg border border-slate-200 break-all leading-relaxed">
+          1 公斤 (kg) = 1,000 毫升 (mL) [以比重 1.0 計算]
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 底部說明列 -->
+    <footer class="bg-slate-50 border-t border-slate-200 p-4 sm:p-5 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+        <span>法規對照：快混池 PAC (0~0.1 kg/m³) ‧ 慢混池 Polymer (0~0.0012 kg/m³)</span>
+      </div>
+      <div>水措許可與現場化學加藥計算器 ‧ 單一檔案離線可用</div>
+    </footer>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. 模組切換 (分頁控制)
+       ========================================================================= */
+    function switchMainTab(tab) {
+      const tabDosing = document.getElementById('tab-dosing');
+      const tabConverter = document.getElementById('tab-converter');
+      const btnDosing = document.getElementById('nav-tab-dosing');
+      const btnConverter = document.getElementById('nav-tab-converter');
+
+      if (tab === 'dosing') {
+        tabDosing.classList.remove('hidden');
+        tabConverter.classList.add('hidden');
+        btnDosing.className = "pb-2.5 px-3 border-b-2 border-blue-400 text-white font-bold flex items-center gap-2 transition";
+        btnConverter.className = "pb-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2 transition";
+      } else {
+        tabDosing.classList.add('hidden');
+        tabConverter.classList.remove('hidden');
+        btnConverter.className = "pb-2.5 px-3 border-b-2 border-blue-400 text-white font-bold flex items-center gap-2 transition";
+        btnDosing.className = "pb-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2 transition";
+        calculateConverter('left');
+      }
+    }
+
+    /* =========================================================================
+       2. 廢水加藥計算與水措反算核心邏輯
+       ========================================================================= */
+    
+    // 水量單位換算為 m³/d 的倍率常數
+    const FLOW_UNIT_TO_M3_DAY = {
+      'm3_d': 1,
+      'CMD': 1,
+      'm3_h': 24,
+      'L_min': (60 * 24) / 1000, // L/min -> m³/d
+      'L_d': 1 / 1000
+    };
+
+    // 乾粉重量換算為 kg 的倍率常數
+    const POWDER_UNIT_TO_KG = {
+      'kg': 1,
+      'g': 0.001,
+      'bag_25': 25,
+      'lb': 0.45359237
+    };
+
+    // 自來水體積換算為 m³ (公噸水) 的倍率常數
+    const WATER_UNIT_TO_M3 = {
+      'ton': 1,
+      'L': 0.001,
+      'drum_200': 0.2
+    };
+
+    let calcMode = 'forward'; // 'forward' (正算) 或 'reverse' (反算)
+
+    // 切換正向/反向模式
+    function toggleCalcMode() {
+      const modeSelect = document.getElementById('calc-mode-select');
+      calcMode = modeSelect.value;
+
+      const flowInput = document.getElementById('input-flow-val');
+      const flowTitle = document.getElementById('label-flow-title');
+      const pacDoseTitle = document.getElementById('label-pac-dose-title');
+      const polyDoseTitle = document.getElementById('label-poly-dose-title');
+
+      if (calcMode === 'forward') {
+        flowTitle.textContent = "廢水處理量 (Q)：";
+        flowInput.removeAttribute('readonly');
+        flowInput.classList.remove('bg-slate-100', 'text-blue-800');
+        flowInput.classList.add('bg-white');
+
+        pacDoseTitle.textContent = "目標加藥劑量：";
+        polyDoseTitle.textContent = "目標加藥劑量 (以純藥計)：";
+      } else {
+        flowTitle.textContent = "反算之廢水量 (由藥量反推)：";
+        flowInput.setAttribute('readonly', true);
+        flowInput.classList.remove('bg-white');
+        flowInput.classList.add('bg-slate-100', 'text-blue-800');
+
+        pacDoseTitle.textContent = "現場實際加藥量 (反推廢水)：";
+        polyDoseTitle.textContent = "現場實際加藥量 (反推廢水)：";
+      }
+
+      runDosingCalculation();
+    }
+
+    // 處理 PAC 稀釋面板顯隱
+    function togglePacDilution() {
+      const val = document.getElementById('select-pac-dilute').value;
+      const panel = document.getElementById('panel-pac-dilution');
+      if (val === 'diluted') {
+        panel.classList.remove('hidden');
+      } else {
+        panel.classList.add('hidden');
+      }
+      runDosingCalculation();
+    }
+
+    // PAC 純度下拉選單變更
+    document.getElementById('select-pac-purity').addEventListener('change', function() {
+      const customInput = document.getElementById('input-pac-custom-purity');
+      if (this.value === 'custom') {
+        customInput.classList.remove('hidden');
+      } else {
+        customInput.classList.add('hidden');
+      }
+      runDosingCalculation();
+    });
+
+    /**
+     * 核心加藥主計算函數 (支援正算與反算)
+     */
+    function runDosingCalculation() {
+      // 1. 取得 PAC 原液規格
+      let pacPurity = 0.10;
+      const pacPuritySel = document.getElementById('select-pac-purity').value;
+      if (pacPuritySel === 'custom') {
+        pacPurity = (parseFloat(document.getElementById('input-pac-custom-purity').value) || 10) / 100;
+      } else {
+        pacPurity = parseFloat(pacPuritySel);
+      }
+      const pacSg = parseFloat(document.getElementById('input-pac-sg').value) || 1.20;
+
+      // PAC 稀釋係數 (每 1 份原液 + water 份水)
+      const pacIsDiluted = document.getElementById('select-pac-dilute').value === 'diluted';
+      const pacRatioPart = parseFloat(document.getElementById('pac-ratio-part').value) || 1;
+      const pacWaterPart = parseFloat(document.getElementById('pac-water-part').value) || 0;
+      const pacDilutionFactor = pacIsDiluted ? ((pacRatioPart + pacWaterPart) / pacRatioPart) : 1;
+
+      // 2. 取得 Polymer 稀釋與泡藥規格
+      const polyPowderVal = parseFloat(document.getElementById('input-poly-powder-val').value) || 0;
+      const polyPowderUnit = document.getElementById('select-poly-powder-unit').value;
+      const polyPowderKg = polyPowderVal * POWDER_UNIT_TO_KG[polyPowderUnit];
+
+      const polyWaterVal = parseFloat(document.getElementById('input-poly-water-val').value) || 1;
+      const polyWaterUnit = document.getElementById('select-poly-water-unit').value;
+      const polyWaterM3 = polyWaterVal * WATER_UNIT_TO_M3[polyWaterUnit];
+
+      const polyPurity = parseFloat(document.getElementById('select-poly-purity').value) || 0.95;
+
+      // 泡藥槽熟化濃度 (kg 乾粉 / m³ 溶液，因水密度 1000 kg/m³，1 kg/m³ 約等於 0.1% = 1000 ppm)
+      // 熟化溶液有效純藥濃度 (kg 純藥 / L 稀釋液)
+      const polySolM3 = (polyWaterM3 > 0) ? polyWaterM3 : 1;
+      const polyConcentrationKgPerM3 = (polyPowderKg * polyPurity) / polySolM3; // kg純藥/m³
+      const polyConcentrationPpm = polyConcentrationKgPerM3 * 1000; // mg/L (ppm)
+      const polyPercent = (polyConcentrationKgPerM3 / 1000) * 100; // %
+
+      document.getElementById('display-poly-conc-percent').textContent = 
+        `熟化純度: ${polyPercent.toFixed(3)} % (${polyConcentrationPpm.toFixed(0)} ppm)`;
+
+      // 3. 根據模式處理水量與加藥量
+      let totalFlowM3Day = 0;
+
+      if (calcMode === 'forward') {
+        // --- 正算模式 ---
+        const flowInputVal = parseFloat(document.getElementById('input-flow-val').value) || 0;
+        const flowUnit = document.getElementById('select-flow-unit').value;
+        totalFlowM3Day = flowInputVal * FLOW_UNIT_TO_M3_DAY[flowUnit];
+
+        document.getElementById('display-norm-flow-day').textContent = formatNum(totalFlowM3Day);
+        document.getElementById('display-norm-flow-hour').textContent = formatNum(totalFlowM3Day / 24);
+
+        // --- PAC 正算 ---
+        const pacDoseVal = parseFloat(document.getElementById('input-pac-dose-val').value) || 0;
+        const pacDoseUnit = document.getElementById('select-pac-dose-unit').value;
+        
+        // 換算為投加劑量 kg 純 PAC / m³ 廢水
+        let pacPureKgPerM3 = 0;
+        if (pacDoseUnit === 'mg_L') {
+          pacPureKgPerM3 = pacDoseVal / 1000;
+        } else if (pacDoseUnit === 'kg_m3') {
+          pacPureKgPerM3 = pacDoseVal;
+        } else if (pacDoseUnit === 'g_m3') {
+          pacPureKgPerM3 = pacDoseVal / 1000;
+        } else if (pacDoseUnit === 'mL_L') {
+          // 1 mL/L 藥液 = 1 L/m³ 藥液 * SG(kg/L) * purity
+          pacPureKgPerM3 = 1 * pacSg * pacPurity;
+        } else if (pacDoseUnit === 'L_h') {
+          // 若選了流量單位，直接當作泵浦打擊量
+          pacPureKgPerM3 = (totalFlowM3Day > 0) ? ((pacDoseVal * 24 / pacDilutionFactor) * pacSg * pacPurity) / totalFlowM3Day : 0;
+        } else if (pacDoseUnit === 'mL_min') {
+          const lDay = (pacDoseVal * 60 * 24) / 1000;
+          pacPureKgPerM3 = (totalFlowM3Day > 0) ? ((lDay / pacDilutionFactor) * pacSg * pacPurity) / totalFlowM3Day : 0;
+        } else if (pacDoseUnit === 'kg_d') {
+          pacPureKgPerM3 = (totalFlowM3Day > 0) ? ((pacDoseVal * pacPurity) / totalFlowM3Day) : 0;
+        }
+
+        // PAC 每日純量與商品原液量
+        const pacPureKgDay = totalFlowM3Day * pacPureKgPerM3;
+        const pacRawKgDay = pacPureKgDay / pacPurity; // 商品原液重量 (kg/日)
+        const pacRawLDay = (pacSg > 0) ? (pacRawKgDay / pacSg) : 0; // 商品原液體積 (L/日)
+        const pacDosingLDay = pacRawLDay * pacDilutionFactor; // 現場實際注入體積 (含稀釋)
+        const pacPumpLh = pacDosingLDay / 24; // 泵浦 L/h
+        const pacPumpMlMin = (pacPumpLh * 1000) / 60; // 泵浦 mL/min
+
+        // 渲染 PAC 結果
+        document.getElementById('res-pac-kg-day').textContent = `${formatNum(pacRawKgDay)} kg/日 (原液)`;
+        document.getElementById('res-pac-l-day').textContent = `${formatNum(pacDosingLDay)} L/日 ${pacIsDiluted ? '(稀釋液)' : '(原液)'}`;
+        document.getElementById('res-pac-pump-flow').textContent = `${formatNum(pacPumpLh)} L/h`;
+        document.getElementById('res-pac-pump-flow-min').textContent = `${formatNum(pacPumpMlMin)} mL/min`;
+
+        // PAC 法規比對 (水措許可: 0 ~ 0.1 kg 原液/m³ 廢水)
+        // 注意：水措上的每日加藥量範圍是 0~0.1 公斤(商品原液)/每公噸廢水
+        const pacCommercialDosePerM3 = (totalFlowM3Day > 0) ? (pacRawKgDay / totalFlowM3Day) : 0;
+        updatePacPermitBadge(pacCommercialDosePerM3, pacRawKgDay);
+
+        // --- Polymer 正算 ---
+        const polyDoseVal = parseFloat(document.getElementById('input-poly-dose-val').value) || 0;
+        const polyDoseUnit = document.getElementById('select-poly-dose-unit').value;
+
+        // 換算為純 Polymer 需求：kg/m³ 廢水
+        let polyPureKgPerM3 = 0;
+        if (polyDoseUnit === 'mg_L') {
+          polyPureKgPerM3 = polyDoseVal / 1000;
+        } else if (polyDoseUnit === 'kg_m3') {
+          polyPureKgPerM3 = polyDoseVal;
+        } else if (polyDoseUnit === 'g_m3') {
+          polyPureKgPerM3 = polyDoseVal / 1000;
+        } else if (polyDoseUnit === 'L_h') {
+          // 泵浦流量反推純量
+          const lDay = polyDoseVal * 24;
+          const pureKgDay = (lDay / 1000) * polyConcentrationKgPerM3;
+          polyPureKgPerM3 = (totalFlowM3Day > 0) ? (pureKgDay / totalFlowM3Day) : 0;
+        } else if (polyDoseUnit === 'mL_min') {
+          const lDay = (polyDoseVal * 60 * 24) / 1000;
+          const pureKgDay = (lDay / 1000) * polyConcentrationKgPerM3;
+          polyPureKgPerM3 = (totalFlowM3Day > 0) ? (pureKgDay / totalFlowM3Day) : 0;
+        } else if (polyDoseUnit === 'kg_d') {
+          polyPureKgPerM3 = (totalFlowM3Day > 0) ? ((polyDoseVal * polyPurity) / totalFlowM3Day) : 0;
+        }
+
+        // Polymer 每日純藥量與乾粉消耗重量
+        const polyPureKgDay = totalFlowM3Day * polyPureKgPerM3;
+        const polyPowderKgDay = (polyPurity > 0) ? (polyPureKgDay / polyPurity) : 0;
+        // 需投加的稀釋後熟化水溶液體積 (L/日)
+        const polyDilutedLDay = (polyConcentrationKgPerM3 > 0) ? (polyPureKgDay / polyConcentrationKgPerM3) * 1000 : 0;
+        const polyPumpLh = polyDilutedLDay / 24;
+        const polyPumpMlMin = (polyPumpLh * 1000) / 60;
+
+        // 渲染 Polymer 結果
+        document.getElementById('res-poly-kg-day').textContent = `${formatNum(polyPowderKgDay)} kg/日 (乾粉)`;
+        document.getElementById('res-poly-diluted-vol-day').textContent = `${formatNum(polyDilutedLDay)} L/日 (泡製液)`;
+        document.getElementById('res-poly-pump-flow').textContent = `${formatNum(polyPumpLh)} L/h`;
+        document.getElementById('res-poly-pump-flow-min').textContent = `${formatNum(polyPumpMlMin)} mL/min`;
+
+        // Polymer 法規比對 (水措許可: 0 ~ 0.0012 kg 乾粉/m³ 廢水)
+        const polyCommercialDosePerM3 = (totalFlowM3Day > 0) ? (polyPowderKgDay / totalFlowM3Day) : 0;
+        updatePolyPermitBadge(polyCommercialDosePerM3, polyPowderKgDay);
+
+        // 產出文字報告
+        renderDosingSummaryText({
+          mode: 'forward',
+          flowM3Day: totalFlowM3Day,
+          pac: { rawKgDay: pacRawKgDay, pumpLh: pacPumpLh, pumpMlMin: pacPumpMlMin, dosePerM3: pacCommercialDosePerM3 },
+          poly: { powderKgDay: polyPowderKgDay, dilutedLDay: polyDilutedLDay, pumpLh: polyPumpLh, pumpMlMin: polyPumpMlMin, dosePerM3: polyCommercialDosePerM3 }
+        });
+
+      } else {
+        // --- 反算模式 (由已知加藥量反推水量或濃度) ---
+        // 讀取 PAC 輸入端的實際數據
+        const pacInputVal = parseFloat(document.getElementById('input-pac-dose-val').value) || 0;
+        const pacUnit = document.getElementById('select-pac-dose-unit').value;
+        
+        let pacRawKgPerDayActual = 0;
+        if (pacUnit === 'kg_d') {
+          pacRawKgPerDayActual = pacInputVal;
+        } else if (pacUnit === 'L_h') {
+          pacRawKgPerDayActual = ((pacInputVal * 24) / pacDilutionFactor) * pacSg;
+        } else if (pacUnit === 'mL_min') {
+          const lDay = (pacInputVal * 60 * 24) / 1000;
+          pacRawKgPerDayActual = (lDay / pacDilutionFactor) * pacSg;
+        } else if (pacUnit === 'mg_L' || pacUnit === 'kg_m3' || pacUnit === 'g_m3') {
+          // 若在反算模式仍選濃度單位，則以水措設計標準 50 mg/L 為除數反算
+          pacRawKgPerDayActual = pacInputVal * 10; // 暫定係數
+        }
+
+        // 以水措核定設計投藥量 0.05 kg 原液/m³ (50 mg/L) 反推對應處理廢水量
+        const designPacDoseRatio = 0.05; // 0.05 kg/m³
+        const inferredFlowM3Day = (pacRawKgPerDayActual > 0) ? (pacRawKgPerDayActual / designPacDoseRatio) : 1000;
+        totalFlowM3Day = inferredFlowM3Day;
+
+        // 反推填入水量框
+        document.getElementById('input-flow-val').value = formatNum(totalFlowM3Day);
+        document.getElementById('display-norm-flow-day').textContent = formatNum(totalFlowM3Day);
+        document.getElementById('display-norm-flow-hour').textContent = formatNum(totalFlowM3Day / 24);
+
+        // 更新 PAC 顯示卡片
+        const pacDosingLDay = (pacRawKgPerDayActual / pacSg) * pacDilutionFactor;
+        const pacPumpLh = pacDosingLDay / 24;
+        const pacPumpMlMin = (pacPumpLh * 1000) / 60;
+        document.getElementById('res-pac-kg-day').textContent = `${formatNum(pacRawKgPerDayActual)} kg/日 (反推)`;
+        document.getElementById('res-pac-l-day').textContent = `${formatNum(pacDosingLDay)} L/日`;
+        document.getElementById('res-pac-pump-flow').textContent = `${formatNum(pacPumpLh)} L/h`;
+        document.getElementById('res-pac-pump-flow-min').textContent = `${formatNum(pacPumpMlMin)} mL/min`;
+
+        // 反算對應 Polymer 在此水量下需投加之量 (以 0.5 mg/L 設計基準)
+        const polyPowderKgDay = totalFlowM3Day * 0.0005; // 0.5 g/m³ = 0.0005 kg/m³
+        const polyPureKgDay = polyPowderKgDay * polyPurity;
+        const polyDilutedLDay = (polyConcentrationKgPerM3 > 0) ? (polyPureKgDay / polyConcentrationKgPerM3) * 1000 : 0;
+        const polyPumpLh = polyDilutedLDay / 24;
+        const polyPumpMlMin = (polyPumpLh * 1000) / 60;
+
+        document.getElementById('res-poly-kg-day').textContent = `${formatNum(polyPowderKgDay)} kg/日 (推估)`;
+        document.getElementById('res-poly-diluted-vol-day').textContent = `${formatNum(polyDilutedLDay)} L/日 (泡製液)`;
+        document.getElementById('res-poly-pump-flow').textContent = `${formatNum(polyPumpLh)} L/h`;
+        document.getElementById('res-poly-pump-flow-min').textContent = `${formatNum(polyPumpMlMin)} mL/min`;
+
+        updatePacPermitBadge(designPacDoseRatio, pacRawKgPerDayActual);
+        updatePolyPermitBadge(0.0005, polyPowderKgDay);
+
+        // 產出文字報告
+        renderDosingSummaryText({
+          mode: 'reverse',
+          flowM3Day: totalFlowM3Day,
+          pac: { rawKgDay: pacRawKgPerDayActual, pumpLh: pacPumpLh, pumpMlMin: pacPumpMlMin, dosePerM3: designPacDoseRatio },
+          poly: { powderKgDay: polyPowderKgDay, dilutedLDay: polyDilutedLDay, pumpLh: polyPumpLh, pumpMlMin: polyPumpMlMin, dosePerM3: 0.0005 }
+        });
+      }
+    }
+
+    /**
+     * 更新 PAC 水措法規檢核狀態標籤 (許可範圍: 0 ~ 0.1 kg/m³，日上限 1240 kg)
+     */
+    function updatePacPermitBadge(doseKgPerM3, dailyKg) {
+      const badge = document.getElementById('badge-pac-status');
+      if (doseKgPerM3 > 0.1 || dailyKg > 1240) {
+        badge.textContent = '超出水措上限 (>0.1 kg/m³ 或 >1240 kg/d)';
+        badge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-rose-100 text-rose-800 border border-rose-300';
+      } else if (doseKgPerM3 < 0.005 && dailyKg > 0) {
+        badge.textContent = '劑量偏低 (請確認絮凝效果)';
+        badge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300';
+      } else {
+        badge.textContent = '符合水措許可 (0 ~ 0.1 kg/m³)';
+        badge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+      }
+    }
+
+    /**
+     * 更新 Polymer 水措法規檢核狀態標籤 (許可範圍: 0 ~ 0.0012 kg/m³，日上限 12.4 kg)
+     */
+    function updatePolyPermitBadge(doseKgPerM3, dailyKg) {
+      const badge = document.getElementById('badge-poly-status');
+      if (doseKgPerM3 > 0.0012 || dailyKg > 12.4) {
+        badge.textContent = '超出水措上限 (>0.0012 kg/m³ 或 >12.4 kg/d)';
+        badge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-rose-100 text-rose-800 border border-rose-300';
+      } else if (doseKgPerM3 < 0.0001 && dailyKg > 0) {
+        badge.textContent = '劑量偏低 (<0.1 mg/L)';
+        badge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300';
+      } else {
+        badge.textContent = '符合水措許可 (0 ~ 0.0012 kg/m³)';
+        badge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-100 text-indigo-800 border border-indigo-300';
+      }
+    }
+
+    /**
+     * 產出總結文字報告
+     */
+    function renderDosingSummaryText(data) {
+      const reportEl = document.getElementById('dosing-text-report');
+      const nowStr = new Date().toLocaleString('zh-TW');
+
+      reportEl.textContent = 
+`【廢水加藥計算與水措查核日誌】
+計算時間：${nowStr}
+計算模式：${data.mode === 'forward' ? '正算模式 (由水量推算加藥)' : '反算模式 (由現場加藥反推水量)'}
+------------------------------------------------------
+一、廢水水量參數：
+  • 每日廢水總量：${formatNum(data.flowM3Day)} m³/日 (CMD)
+  • 平均小時水量：${formatNum(data.flowM3Day / 24)} m³/h
+
+二、快混池 (T01-10) PAC 聚合氯化鋁投加：
+  • 單位廢水投藥率：${formatNum(data.pac.dosePerM3 * 1000)} g/m³ (約 ${(data.pac.dosePerM3 * 1000).toFixed(1)} ppm)
+  • 每日原液消耗量：${formatNum(data.pac.rawKgDay)} kg/日 (許可上限: 1,240 kg/日)
+  • 加藥機建議流量：${formatNum(data.pac.pumpLh)} L/h (相當於 ${formatNum(data.pac.pumpMlMin)} mL/min)
+
+三、慢混池 (T01-11) Polymer 高分子凝集劑投加：
+  • 單位廢水投藥率：${formatNum(data.poly.dosePerM3 * 1000)} g/m³ (約 ${(data.poly.dosePerM3 * 1000).toFixed(2)} ppm)
+  • 每日乾粉消耗量：${formatNum(data.poly.powderKgDay)} kg/日 (許可上限: 12.4 kg/日)
+  • 每日泡製稀釋液：${formatNum(data.poly.dilutedLDay)} L/日
+  • 加藥機打擊流量：${formatNum(data.poly.pumpLh)} L/h (相當於 ${formatNum(data.poly.pumpMlMin)} mL/min)
+------------------------------------------------------
+備註：本數據可直接作為水措操作紀錄與加藥泵現場刻度設定基準。`;
+    }
+
+    /**
+     * 複製加藥報告文字
+     */
+    function copyDosingSummaryReport() {
+      const text = document.getElementById('dosing-text-report').textContent;
+      const dummy = document.createElement('textarea');
+      document.body.appendChild(dummy);
+      dummy.value = text;
+      dummy.select();
+      document.execCommand('copy');
+      document.body.removeChild(dummy);
+
+      // 提示反饋
+      const btn = event.currentTarget;
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-check text-emerald-600"></i> 已複製至剪貼簿`;
+      setTimeout(() => {
+        btn.innerHTML = originalHtml;
+      }, 2000);
+    }
+
+    // 事件監聽註冊 (加藥計算機)
+    const dosingInputs = [
+      'input-flow-val', 'select-flow-unit',
+      'input-pac-sg', 'select-pac-purity', 'input-pac-custom-purity', 'select-pac-dilute', 'pac-ratio-part', 'pac-water-part', 'input-pac-dose-val', 'select-pac-dose-unit',
+      'input-poly-powder-val', 'select-poly-powder-unit', 'input-poly-water-val', 'select-poly-water-unit', 'select-poly-purity', 'input-poly-dose-val', 'select-poly-dose-unit'
+    ];
+
+    dosingInputs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', runDosingCalculation);
+        el.addEventListener('change', runDosingCalculation);
+      }
+    });
+
+
+    /* =========================================================================
+       3. 重量與容量通用換算器 (保留並銜接)
+       ========================================================================= */
+    const UNITS = {
+      weight: [
+        { key: 't',   name: '公噸 (t)',           ratioToG: 1000000 },
+        { key: 'kg',  name: '公斤 (kg)',          ratioToG: 1000 },
+        { key: 'g',   name: '公克 (g)',           ratioToG: 1 },
+        { key: 'mg',  name: '毫克 (mg)',          ratioToG: 0.001 },
+        { key: 'ug',  name: '微克 (µg)',          ratioToG: 0.000001 }
+      ],
+      volume: [
+        { key: 'kl',  name: '公秉/立方公尺/噸水 (kL / m³)', ratioToMl: 1000000 },
+        { key: 'l',   name: '公升 (L)',                   ratioToMl: 1000 },
+        { key: 'ml',  name: '毫升/立方公分 (mL / cm³)',    ratioToMl: 1 },
+        { key: 'ul',  name: '微升 (µL)',                  ratioToMl: 0.001 }
+      ]
+    };
+
+    const typeLeftEl = document.getElementById('type-left');
+    const typeRightEl = document.getElementById('type-right');
+    const unitLeftEl = document.getElementById('unit-left');
+    const unitRightEl = document.getElementById('unit-right');
+    const valLeftEl = document.getElementById('val-left');
+    const valRightEl = document.getElementById('val-right');
+    const inputSgEl = document.getElementById('input-sg');
+    const btnSwapEl = document.getElementById('btn-swap');
+    const btnClearConverterEl = document.getElementById('btn-clear-converter');
+    const formulaDetailEl = document.getElementById('formula-detail');
+    const sgStatusBadgeEl = document.getElementById('sg-status-badge');
+
+    let lastActiveSide = 'left';
+
+    function populateUnitSelect(selectEl, dimensionType, defaultUnitKey) {
+      const units = UNITS[dimensionType];
+      selectEl.innerHTML = '';
+      units.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.key;
+        opt.textContent = u.name;
+        selectEl.appendChild(opt);
+      });
+      if (defaultUnitKey && units.some(u => u.key === defaultUnitKey)) {
+        selectEl.value = defaultUnitKey;
+      } else {
+        selectEl.value = dimensionType === 'weight' ? 'kg' : 'ml';
+      }
+    }
+
+    function getUnitInfo(dimensionType, key) {
+      return UNITS[dimensionType].find(u => u.key === key);
+    }
+
+    function formatNum(num) {
+      if (isNaN(num) || !isFinite(num)) return '0';
+      if (num === 0) return '0';
+      const absVal = Math.abs(num);
+      if (absVal >= 1e9 || (absVal < 1e-4 && absVal > 0)) {
+        return num.toExponential(4).replace(/\.?0+e/, 'e');
+      }
+      return parseFloat(num.toFixed(4)).toLocaleString('en-US', { maximumFractionDigits: 4 });
+    }
+
+    function updateSgStatus() {
+      const isCrossDimension = typeLeftEl.value !== typeRightEl.value;
+      if (isCrossDimension) {
+        sgStatusBadgeEl.textContent = '跨維度計算生效中';
+        sgStatusBadgeEl.className = 'text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-normal';
+      } else {
+        sgStatusBadgeEl.textContent = '同維度換算(無須比重)';
+        sgStatusBadgeEl.className = 'text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-normal';
+      }
+    }
+
+    function calculateConverter(fromSide = 'left') {
+      lastActiveSide = fromSide;
+      updateSgStatus();
+
+      const sourceValInput = fromSide === 'left' ? valLeftEl : valRightEl;
+      const targetValInput = fromSide === 'left' ? valRightEl : valLeftEl;
+
+      const sourceType = fromSide === 'left' ? typeLeftEl.value : typeRightEl.value;
+      const targetType = fromSide === 'left' ? typeRightEl.value : typeLeftEl.value;
+
+      const sourceUnitKey = fromSide === 'left' ? unitLeftEl.value : unitRightEl.value;
+      const targetUnitKey = fromSide === 'left' ? unitRightEl.value : unitLeftEl.value;
+
+      const valStr = sourceValInput.value.trim();
+
+      if (valStr === '' || isNaN(Number(valStr))) {
+        targetValInput.value = '';
+        formulaDetailEl.textContent = '請輸入數值開始換算。';
+        return;
+      }
+
+      const inputVal = parseFloat(valStr);
+      let sg = parseFloat(inputSgEl.value);
+      if (isNaN(sg) || sg <= 0) sg = 1.0;
+
+      let baseVal = 0;
+      const sourceUnit = getUnitInfo(sourceType, sourceUnitKey);
+      if (sourceType === 'weight') {
+        baseVal = inputVal * sourceUnit.ratioToG;
+      } else {
+        baseVal = inputVal * sourceUnit.ratioToMl;
+      }
+
+      let targetBaseVal = 0;
+      if (sourceType === targetType) {
+        targetBaseVal = baseVal;
+      } else if (sourceType === 'weight' && targetType === 'volume') {
+        targetBaseVal = baseVal / sg;
+      } else if (sourceType === 'volume' && targetType === 'weight') {
+        targetBaseVal = baseVal * sg;
+      }
+
+      const targetUnit = getUnitInfo(targetType, targetUnitKey);
+      const finalVal = targetType === 'weight' ? (targetBaseVal / targetUnit.ratioToG) : (targetBaseVal / targetUnit.ratioToMl);
+
+      targetValInput.value = parseFloat(finalVal.toFixed(6));
+
+      if (sourceType === targetType) {
+        formulaDetailEl.innerHTML = `<strong>${inputVal}</strong> ${sourceUnit.name} = <strong class="text-blue-700">${formatNum(finalVal)}</strong> ${targetUnit.name} <span class="text-slate-400"> (同維度直接換算)</span>`;
+      } else {
+        formulaDetailEl.innerHTML = `<strong>${inputVal}</strong> ${sourceUnit.name} = <strong class="text-blue-700">${formatNum(finalVal)}</strong> ${targetUnit.name} <span class="text-slate-500"> (依據比重 SG = <strong>${sg}</strong> 計算)</span>`;
+      }
+    }
+
+    function setPresetSG(sgValue, label) {
+      inputSgEl.value = sgValue;
+      calculateConverter(lastActiveSide);
+    }
+
+    function swapSides() {
+      const leftType = typeLeftEl.value;
+      const rightType = typeRightEl.value;
+      const leftUnit = unitLeftEl.value;
+      const rightUnit = unitRightEl.value;
+      const leftVal = valLeftEl.value;
+      const rightVal = valRightEl.value;
+
+      typeLeftEl.value = rightType;
+      typeRightEl.value = leftType;
+
+      populateUnitSelect(unitLeftEl, rightType, rightUnit);
+      populateUnitSelect(unitRightEl, leftType, leftUnit);
+
+      valLeftEl.value = rightVal;
+      valRightEl.value = leftVal;
+
+      calculateConverter('left');
+    }
+
+    // 事件註冊 (換算器)
+    typeLeftEl.addEventListener('change', () => { populateUnitSelect(unitLeftEl, typeLeftEl.value); calculateConverter('left'); });
+    typeRightEl.addEventListener('change', () => { populateUnitSelect(unitRightEl, typeRightEl.value); calculateConverter('left'); });
+    unitLeftEl.addEventListener('change', () => calculateConverter('left'));
+    unitRightEl.addEventListener('change', () => calculateConverter('left'));
+    valLeftEl.addEventListener('input', () => calculateConverter('left'));
+    valRightEl.addEventListener('input', () => calculateConverter('right'));
+    inputSgEl.addEventListener('input', () => calculateConverter(lastActiveSide));
+    btnSwapEl.addEventListener('click', swapSides);
+    btnClearConverterEl.addEventListener('click', () => {
+      valLeftEl.value = '';
+      valRightEl.value = '';
+      formulaDetailEl.textContent = '請輸入數值開始換算。';
+    });
+
+    // 頁面初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      // 初始化單位換算器選單
+      typeLeftEl.value = 'weight';
+      typeRightEl.value = 'volume';
+      populateUnitSelect(unitLeftEl, 'weight', 'kg');
+      populateUnitSelect(unitRightEl, 'volume', 'ml');
+      valLeftEl.value = '1';
+      calculateConverter('left');
+
+      // 初始化廢水加藥計算
+      runDosingCalculation();
+    });
+  </script>
+</body>
+</html>
