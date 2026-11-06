@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>水質計算</title>
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Google Fonts: Inter 與 Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      background-color: #f1f5f9;
+    }
+
+    /* 移除預設 number input 的上下箭頭，讓手機與桌面介面更簡潔 */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      font-size: 18px !important; /* 強制大於 16px 避免 iOS Safari 自動放大畫面 */
+    }
+
+    /* 新增卡片時的平滑動畫 */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .stream-card-enter {
+      animation: slideIn 0.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col items-center">
+
+  <!-- 手機直式容器 (最大寬度 480px 置中) -->
+  <div class="w-full max-w-[480px] min-h-screen flex flex-col bg-slate-50 shadow-xl relative pb-48">
+
+    <!-- 頂部標題列 -->
+    <header class="sticky top-0 z-20 bg-gradient-to-r from-sky-600 to-cyan-600 text-white px-4 py-3.5 shadow-md flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-wide leading-tight">水質計算</h1>
+          <p class="text-xs text-sky-100 opacity-90">多股水源匯流加權計算</p>
+        </div>
+      </div>
+
+      <!-- 清空重設按鈕 -->
+      <button
+        id="resetBtn"
+        type="button"
+        class="px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 transition text-xs font-medium flex items-center gap-1.5 border border-white/20"
+        title="清空所有數值並恢復預設兩股水"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span>清空重設</span>
+      </button>
+    </header>
+
+    <!-- 主要輸入區 -->
+    <main class="flex-1 px-4 pt-4 space-y-3">
+      <!-- 水股清單容器 -->
+      <div id="streamsContainer" class="space-y-3"></div>
+
+      <!-- + 新增匯入的水 按鈕 -->
+      <div class="pt-1 pb-4">
+        <button
+          id="addStreamBtn"
+          type="button"
+          class="w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-sky-400 bg-sky-50/70 hover:bg-sky-100/80 active:scale-[0.99] transition flex items-center justify-center gap-2 text-sky-700 font-bold shadow-sm"
+        >
+          <span class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-xl leading-none shadow">+</span>
+          <span class="text-base">新增匯入的水</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- 底部固定結果顯示區塊：放流水 -->
+    <footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-30 px-3 pb-3 pt-2 bg-gradient-to-t from-slate-100 via-slate-100/95 to-transparent pointer-events-none">
+      <div class=" pointer-events-auto bg-slate-900 text-white rounded-3xl p-4 shadow-2xl border border-slate-700/80">
+        <!-- 放流水標題與算式預覽 -->
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <h2 class="text-base font-bold tracking-wider text-cyan-300">放流水（計算結果）</h2>
+          </div>
+          <button
+            id="copyResultBtn"
+            type="button"
+            class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-700 transition flex items-center gap-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span id="copyBtnText">複製結果</span>
+          </button>
+        </div>
+
+        <!-- 放流水：水質、水量 雙欄顯示 -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- 放流水 水質 -->
+          <div class="bg-slate-800/90 border border-cyan-500/30 rounded-2xl p-3 flex flex-col justify-between">
+            <span class="text-xs font-medium text-slate-400">水質</span>
+            <div id="resultQuality" class="text-2xl sm:text-3xl font-extrabold text-cyan-300 tracking-tight truncate mt-0.5">
+              0
+            </div>
+          </div>
+
+          <!-- 放流水 水量 -->
+          <div class="bg-slate-800/90 border border-sky-500/30 rounded-2xl p-3 flex flex-col justify-between">
+            <span class="text-xs font-medium text-slate-400">水量</span>
+            <div id="resultVolume" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight truncate mt-0.5">
+              0
+            </div>
+          </div>
+        </div>
+
+        <!-- 即時公式展開提示 -->
+        <div id="formulaPreview" class="mt-2.5 text-[11px] text-slate-400 font-mono truncate text-center bg-slate-950/50 py-1 px-2.5 rounded-xl">
+          公式：(a水質×a水量 + b水質×b水量) ÷ (a水量 + b水量)
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // 狀態管理：儲存每一股水的資料 (預設兩股水)
+    let streams = [
+      { id: 1, quality: '', volume: '' },
+      { id: 2, quality: '', volume: '' }
+    ];
+    let nextId = 3;
+
+    // 數字轉中文序號 (支援第一股水、第二股水...至第九十九股水以上)
+    function toChineseOrdinal(num) {
+      const digits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+      if (num <= 10) {
+        return num === 10 ? '十' : digits[num];
+      }
+      if (num < 20) {
+        return '十' + digits[num % 10];
+      }
+      if (num < 100) {
+        const tens = Math.floor(num / 10);
+        const ones = num % 10;
+        return digits[tens] + '十' + (ones === 0 ? '' : digits[ones]);
+      }
+      return num.toString();
+    }
+
+    // 數值格式化：四捨五入至小數點後第 2 位，整數不顯示多餘的 0
+    function formatNumber(val) {
+      if (!isFinite(val) || isNaN(val)) return '0';
+      const rounded = Math.round((val + Number.EPSILON) * 100) / 100;
+      return Number(rounded.toFixed(2)).toString();
+    }
+
+    // 渲染所有水股輸入卡片
+    function renderStreams(newlyAddedId = null) {
+      const container = document.getElementById('streamsContainer');
+      container.innerHTML = '';
+
+      streams.forEach((stream, index) => {
+        const streamTitle = `第${toChineseOrdinal(index + 1)}股水`;
+        const canDelete = streams.length > 2;
+
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/90 transition ${
+          stream.id === newlyAddedId ? 'stream-card-enter' : ''
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center">
+                ${index + 1}
+              </span>
+              <span class="font-bold text-slate-800 text-base">${streamTitle}</span>
+            </div>
+            ${
+              canDelete
+                ? `<button
+                    type="button"
+                    data-remove-id="${stream.id}"
+                    class="text-xs text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 active:scale-95 px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1"
+                    aria-label="刪除${streamTitle}"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    刪除
+                  </button>`
+                : ''
+            }
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- 水質輸入框 -->
+            <div>
+              <label for="quality-${stream.id}" class="block text-xs font-semibold text-slate-500 mb-1 pl-0.5">
+                水質
+              </label>
+              <div class="relative">
+                <input
+                  id="quality-${stream.id}"
+                  type="number"
+                  inputmode="decimal"
+                  step="any"
+                  placeholder="0"
+                  value="${stream.quality}"
+                  data-id="${stream.id}"
+                  data-field="quality"
+                  class="stream-input w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 font-semibold text-slate-900 placeholder-slate-300 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                />
+              </div>
+            </div>
+
+            <!-- 水量輸入框 -->
+            <div>
+              <label for="volume-${stream.id}" class="block text-xs font-semibold text-slate-500 mb-1 pl-0.5">
+                水量
+              </label>
+              <div class="relative">
+                <input
+                  id="volume-${stream.id}"
+                  type="number"
+                  inputmode="decimal"
+                  step="any"
+                  placeholder="0"
+                  value="${stream.volume}"
+                  data-id="${stream.id}"
+                  data-field="volume"
+                  class="stream-input w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 font-semibold text-slate-900 placeholder-slate-300 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                />
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      bindInputEvents();
+      calculateResult();
+    }
+
+    // 綁定輸入框與刪除按鈕事件
+    function bindInputEvents() {
+      const inputs = document.querySelectorAll('.stream-input');
+      inputs.forEach((input, idx) => {
+        // 當數值改變時即時更新並計算
+        input.addEventListener('input', (e) => {
+          const id = Number(e.target.getAttribute('data-id'));
+          const field = e.target.getAttribute('data-field');
+          const targetStream = streams.find((s) => s.id === id);
+          if (targetStream) {
+            targetStream[field] = e.target.value;
+            calculateResult();
+          }
+        });
+
+        // 在手機數字鍵盤按下 Enter / 下一步 時自動跳到下一個輸入框
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextInput = inputs[idx + 1];
+            if (nextInput) {
+              nextInput.focus();
+            } else {
+              input.blur();
+            }
+          }
+        });
+      });
+
+      // 綁定刪除單一水股按鈕
+      const removeButtons = document.querySelectorAll('[data-remove-id]');
+      removeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const removeId = Number(btn.getAttribute('data-remove-id'));
+          if (streams.length > 2) {
+            streams = streams.filter((s) => s.id !== removeId);
+            renderStreams();
+          }
+        });
+      });
+    }
+
+    // 即時計算加權平均水質與總水量
+    function calculateResult() {
+      let totalWeightedQuality = 0; // (a水質 * a水量) + (b水質 * b水量) + ...
+      let totalVolume = 0;          // a水量 + b水量 + ...
+      const numeratorParts = [];
+      const denominatorParts = [];
+
+      streams.forEach((stream) => {
+        const q = parseFloat(stream.quality) || 0;
+        const v = parseFloat(stream.volume) || 0;
+
+        totalWeightedQuality += q * v;
+        totalVolume += v;
+
+        if (stream.quality !== '' || stream.volume !== '') {
+          numeratorParts.push(`(${q}×${v})`);
+          denominatorParts.push(`${v}`);
+        }
+      });
+
+      const finalQuality = totalVolume > 0 ? totalWeightedQuality / totalVolume : 0;
+
+      // 更新畫面上的放流水質與水量
+      document.getElementById('resultQuality').textContent = formatNumber(finalQuality);
+      document.getElementById('resultVolume').textContent = formatNumber(totalVolume);
+
+      // 更新底部公式即時預覽
+      const formulaEl = document.getElementById('formulaPreview');
+      if (numeratorParts.length > 0) {
+        formulaEl.textContent = `算式：[${numeratorParts.join(' + ')}] ÷ (${denominatorParts.join(' + ')})`;
+      } else {
+        formulaEl.textContent = '公式：(a水質×a水量 + b水質×b水量) ÷ (a水量 + b水量)';
+      }
+    }
+
+    // 點擊「+ 新增匯入的水」按鈕
+    document.getElementById('addStreamBtn').addEventListener('click', () => {
+      const newId = nextId++;
+      streams.push({ id: newId, quality: '', volume: '' });
+      renderStreams(newId);
+
+      // 自動將畫面滾動至新增的水股並聚焦於水質輸入框
+      setTimeout(() => {
+        const newQualityInput = document.getElementById(`quality-${newId}`);
+        if (newQualityInput) {
+          newQualityInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          newQualityInput.focus();
+        }
+      }, 60);
+    });
+
+    // 點擊「清空重設」按鈕
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      streams = [
+        { id: 1, quality: '', volume: '' },
+        { id: 2, quality: '', volume: '' }
+      ];
+      nextId = 3;
+      renderStreams();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // 點擊「複製結果」按鈕 (使用相容於 iFrame 的剪貼簿複製方式)
+    document.getElementById('copyResultBtn').addEventListener('click', () => {
+      const q = document.getElementById('resultQuality').textContent;
+      const v = document.getElementById('resultVolume').textContent;
+      const textToCopy = `放流水 - 水質: ${q}, 水量: ${v}`;
+
+      const tempInput = document.createElement('textarea');
+      tempInput.value = textToCopy;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        const copyBtnText = document.getElementById('copyBtnText');
+        copyBtnText.textContent = '已複製！';
+        setTimeout(() => {
+          copyBtnText.textContent = '複製結果';
+        }, 1500);
+      } catch (err) {
+        console.error('複製失敗', err);
+      }
+      document.body.removeChild(tempInput);
+    });
+
+    // 初始化渲染
+    window.onload = function () {
+      renderStreams();
+    };
+  </script>
+</body>
+</html>
